@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generator Modul Ajar - Kurikulum Merdeka</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Modul Ajar Generator</h1>
+      <p class="subtitle">Susun perangkat pembelajaran profesional dalam hitungan detik</p>
+    </header>
+
+    <main>
+      <div class="card no-print">
+        <form id="modulForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="category">Kategori Mapel</label>
+              <select id="category">
+                <option value="custom">-- Pilih Mapel atau Lainnya --</option>
+                <option value="Informatika">Informatika</option>
+                <option value="Matematika">Matematika</option>
+                <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                <option value="Bahasa Inggris">Bahasa Inggris</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fase">Fase Kurikulum</label>
+              <select id="fase">
+                <option value="">-- Pilih Fase --</option>
+                <option value="A">Fase A (Kelas 1-2)</option>
+                <option value="B">Fase B (Kelas 3-4)</option>
+                <option value="C">Fase C (Kelas 5-6)</option>
+                <option value="D">Fase D (Kelas 7-9)</option>
+                <option value="E">Fase E (Kelas 10)</option>
+                <option value="F">Fase F (Kelas 11-12)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="subject">Nama Mapel Spesifik</label>
+              <input type="text" id="subject" placeholder="Contoh: Matematika" required>
+            </div>
+            <div class="field">
+              <label for="level">Kelas & Semester</label>
+              <input type="text" id="level" placeholder="Contoh: Kelas VII / Semester 1" required>
+            </div>
+            <div class="field full-width">
+              <label for="topic">Materi Pembelajaran</label>
+              <input type="text" id="topic" placeholder="Judul materi utama" required>
+            </div>
+            <div class="field full-width" id="cpSelectField" style="display: none;">
+              <label for="cpSelect">Pilih Capaian Pembelajaran (CP)</label>
+              <select id="cpSelect">
+                <option value="">-- Pilih Elemen CP --</option>
+              </select>
+            </div>
+            <div class="field full-width" id="cpManualField">
+              <label for="cp">Isi Capaian Pembelajaran (CP)</label>
+              <textarea id="cp" placeholder="Salin CP dari regulasi atau tulis manual di sini..."></textarea>
+            </div>
+            <div class="field">
+              <label for="duration">Alokasi Waktu</label>
+              <input type="text" id="duration" placeholder="Contoh: 2 x 45 Menit" required>
+            </div>
+            <div class="field">
+              <label for="model">Model Pembelajaran</label>
+              <select id="model" required>
+                <option value="">Pilih model...</option>
+                <option value="Problem Based Learning">Problem Based Learning</option>
+                <option value="Project Based Learning">Project Based Learning</option>
+                <option value="Discovery Learning">Discovery Learning</option>
+                <option value="Inquiry Learning">Inquiry Learning</option>
+                <option value="Cooperative Learning">Cooperative Learning</option>
+                <option value="Game-Based Learning">Game-Based Learning</option>
+                <option value="Direct Instruction">Direct Instruction</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit">
+            <span>Buat Modul Ajar</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <div id="result" class="card">
+        <div class="result-header">
+          <h2 id="resultTitle">Modul Ajar</h2>
+          <button id="exportWord" class="no-print"
+            style="background: var(--primary); padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+            Ekspor ke Word (.docx)
+          </button>
+          <button onclick="window.print()" class="no-print"
+            style="background: var(--success); padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+            Cetak PDF
+          </button>
+        </div>
+        <div id="modulContent" class="modul-content">
+          <!-- Content will be generated here -->
+        </div>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
