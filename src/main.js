@@ -46,7 +46,7 @@ const FASE_CLASSES = {
   'F': [11, 12]
 };
 
-const formFields = ['jenjang', 'category', 'fase', 'class', 'semester', 'subject', 'topic', 'cp', 'duration', 'model', 'isDifferentiated'];
+const formFields = ['jenjang', 'category', 'fase', 'class', 'semester', 'subject', 'topic', 'cp', 'duration', 'pertemuan', 'model', 'isDifferentiated'];
 
 function saveFormData() {
   const data = {};
@@ -167,6 +167,7 @@ form.addEventListener('submit', (e) => {
     topic: document.getElementById('topic').value,
     cp: document.getElementById('cp').value,
     duration: document.getElementById('duration').value,
+    pertemuan: document.getElementById('pertemuan').value,
     model: document.getElementById('model').value,
     isDifferentiated: document.getElementById('isDifferentiated').checked
   };
@@ -668,7 +669,7 @@ function renderResult(data, tps, atp, steps, assessment, extras, rubric) {
       <div><strong>Mata Pelajaran:</strong> ${data.subject}</div>
       <div><strong>Kelas/Semester:</strong> Kelas ${data.class} / Semester ${data.semester}</div>
       <div><strong>Materi:</strong> ${data.topic}</div>
-      <div><strong>Alokasi Waktu:</strong> ${data.duration}</div>
+      <div><strong>Alokasi Waktu:</strong> ${data.duration} (${data.pertemuan} Pertemuan)</div>
       <div style="grid-column: span 2;"><strong>Model Pembelajaran:</strong> ${data.model}</div>
     </div>
 
