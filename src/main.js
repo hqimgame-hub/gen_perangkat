@@ -17,43 +17,44 @@ const KKO = {
   C6: ['Merancang', 'Membangun', 'Menciptakan', 'Mengembangkan']
 };
 
-// Database CP sederhana untuk Mapel Populer
-const cpDatabase = {
-  'Informatika': {
-    'D': [
-      { element: 'Berpikir Komputasional', text: 'Peserta didik mampu menerapkan berpikir komputasional untuk menghasilkan beberapa solusi dari persoalan dengan data diskrit bervolume kecil serta mendisposisikan berpikir komputasional dalam bidang lain terutama dalam literasi, numerasi, dan literasi sains (computationally literate).' },
-      { element: 'Teknologi Informasi dan Komunikasi', text: 'Peserta didik mampu menerapkan praktik baik dalam memanfaatkan aplikasi surel untuk berkomunikasi, aplikasi peramban untuk pencarian informasi di internet, CMS di perangkat komputer untuk membuat karya digital, dan mengelola dokumen pencahayaan.' }
-    ],
-    'E': [
-      { element: 'Berpikir Komputasional', text: 'Peserta didik mampu menerapkan strategi algoritmik standar untuk menghasilkan beberapa solusi persoalan dengan data diskrit bervolume besar dan kompleks pada kehidupan sehari-hari maupun implementasinya dalam sistem komputer.' }
-    ]
+// Data Mappings
+const JENJANG_MAP = {
+  'SD': {
+    fase: ['A', 'B', 'C'],
+    subjects: ['Pendidikan Pancasila', 'Bahasa Indonesia', 'Matematika', 'IPAS', 'Seni Budaya', 'PJOK', 'Bahasa Inggris', 'Lainnya']
   },
-  'Matematika': {
-    'D': [
-      { element: 'Bilangan', text: 'Peserta didik dapat membaca, menulis, dan membandingkan bilangan bulat, bilangan rasional dan irasional, bilangan desimal, bilangan berpangkat bulat dan akar, bilangan dalam notasi ilmiah.' },
-      { element: 'Aljabar', text: 'Peserta didik dapat mengenali, memprediksi dan menggeneralisasi pola dalam bentuk susunan benda dan bilangan.' }
-    ]
+  'SMP': {
+    fase: ['D'],
+    subjects: ['Pendidikan Pancasila', 'Bahasa Indonesia', 'Matematika', 'IPA', 'IPS', 'Bahasa Inggris', 'Informatika', 'Seni Budaya', 'PJOK', 'Lainnya']
   },
-  'Bahasa Indonesia': {
-    'D': [
-      { element: 'Menyimak', text: 'Peserta didik mampu menganalisis dan memaknai informasi berupa gagasan, pikiran, perasaan, pandangan, arahan atau pesan yang tepat dari berbagai jenis teks (nonfiksi dan fiksi) audiovisual dan aural dalam bentuk monolog, dialog, dan gelar wicara.' }
-    ]
+  'SMA': {
+    fase: ['E', 'F'],
+    subjects: ['Pendidikan Pancasila', 'Bahasa Indonesia', 'Matematika', 'Bahasa Inggris', 'Informatika', 'Sejarah', 'PJOK', 'Fisika', 'Kimia', 'Biologi', 'Ekonomi', 'Sosiologi', 'Geografi', 'Seni Budaya', 'Lainnya']
   },
-  'Bahasa Inggris': {
-    'D': [
-      { element: 'Menyimak - Berbicara', text: 'Peserta didik menggunakan bahasa Inggris untuk berinteraksi dan saling bertukar ide, pengalaman, minat, pendapat dan pandangan dengan guru, teman sebaya dan orang lain dalam berbagai macam konteks familiar yang formal dan informal.' }
-    ]
+  'SMK': {
+    fase: ['E', 'F'],
+    subjects: ['Pendidikan Pancasila', 'Bahasa Indonesia', 'Matematika', 'Bahasa Inggris', 'Informatika', 'Sejarah', 'PJOK', 'Fisika', 'Kimia', 'Biologi', 'Seni Budaya', 'Kejuruan', 'Lainnya']
   }
 };
 
-// Fitur Auto-Save
-const formFields = ['subject', 'level', 'topic', 'cp', 'duration', 'model', 'differentiation', 'category', 'fase', 'cpSelect'];
+const FASE_CLASSES = {
+  'A': [1, 2],
+  'B': [3, 4],
+  'C': [5, 6],
+  'D': [7, 8, 9],
+  'E': [10],
+  'F': [11, 12]
+};
+
+const formFields = ['jenjang', 'category', 'fase', 'class', 'semester', 'subject', 'topic', 'cp', 'duration', 'model'];
 
 function saveFormData() {
   const data = {};
   formFields.forEach(field => {
     const el = document.getElementById(field);
-    data[field] = el.type === 'checkbox' ? el.checked : el.value;
+    if (el) {
+      data[field] = el.type === 'checkbox' ? el.checked : el.value;
+    }
   });
   localStorage.setItem('modulData', JSON.stringify(data));
 }
@@ -62,59 +63,93 @@ function loadFormData() {
   const saved = localStorage.getItem('modulData');
   if (saved) {
     const data = JSON.parse(saved);
+    // Load Jenjang first to trigger dependent dropdowns
+    const jenjangEl = document.getElementById('jenjang');
+    if (jenjangEl && data.jenjang) {
+      jenjangEl.value = data.jenjang;
+      updateJenjangOptions();
+
+      const faseEl = document.getElementById('fase');
+      if (faseEl && data.fase) {
+        faseEl.value = data.fase;
+        updateFaseOptions();
+      }
+    }
+
     formFields.forEach(field => {
       const el = document.getElementById(field);
-      if (el) {
+      if (el && data[field] !== undefined) {
         if (el.type === 'checkbox') el.checked = data[field];
-        else el.value = data[field] || '';
+        else el.value = data[field];
       }
     });
   }
 }
 
-const cpSelectField = document.getElementById('cpSelectField');
-const cpManualField = document.getElementById('cpManualField');
+const jenjangEl = document.getElementById('jenjang');
 const categoryEl = document.getElementById('category');
 const faseEl = document.getElementById('fase');
-const cpSelectEl = document.getElementById('cpSelect');
-const cpTextArea = document.getElementById('cp');
+const classEl = document.getElementById('class');
 const subjectInput = document.getElementById('subject');
 
-function updateCPOptions() {
-  const cat = categoryEl.value;
-  const fase = faseEl.value;
-
-  // Update Subject Input automatically if not "custom"
-  if (cat !== 'custom') {
-    subjectInput.value = cat;
+function updateJenjangOptions() {
+  const jen = jenjangEl.value;
+  if (!jen) {
+    categoryEl.innerHTML = '<option value="">-- Pilih Jenjang Terlebih Dahulu --</option>';
+    faseEl.innerHTML = '<option value="">-- Pilih Jenjang Terlebih Dahulu --</option>';
+    return;
   }
 
-  if (cpDatabase[cat] && cpDatabase[cat][fase]) {
-    cpSelectField.style.display = 'block';
-    cpManualField.style.display = 'none';
+  const map = JENJANG_MAP[jen];
 
-    // Clear and Fill Select
-    cpSelectEl.innerHTML = '<option value="">-- Pilih Elemen CP --</option>';
-    cpDatabase[cat][fase].forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item.text;
-      opt.innerText = item.element;
-      cpSelectEl.appendChild(opt);
-    });
-    cpTextArea.required = false;
-    cpTextArea.value = ''; // Clear manual if switching to auto
-  } else {
-    cpSelectField.style.display = 'none';
-    cpManualField.style.display = 'block';
-    cpTextArea.required = true;
-  }
+  // Update Category (Subjects)
+  categoryEl.innerHTML = '<option value="">-- Pilih Mapel --</option>';
+  map.subjects.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.innerText = s;
+    categoryEl.appendChild(opt);
+  });
+
+  // Update Fase
+  faseEl.innerHTML = '<option value="">-- Pilih Fase --</option>';
+  map.fase.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f;
+    opt.innerText = `Fase ${f}`;
+    faseEl.appendChild(opt);
+  });
+
+  updateFaseOptions(); // Clear classes
 }
 
-categoryEl.addEventListener('change', updateCPOptions);
-faseEl.addEventListener('change', updateCPOptions);
+function updateFaseOptions() {
+  const fase = faseEl.value;
+  if (!fase) {
+    classEl.innerHTML = '<option value="">-- Pilih Fase Terlebih Dahulu --</option>';
+    return;
+  }
+
+  classEl.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+  FASE_CLASSES[fase].forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.innerText = `Kelas ${c}`;
+    classEl.appendChild(opt);
+  });
+}
+
+jenjangEl.addEventListener('change', updateJenjangOptions);
+faseEl.addEventListener('change', updateFaseOptions);
+categoryEl.addEventListener('change', () => {
+  if (categoryEl.value !== 'Lainnya') {
+    subjectInput.value = categoryEl.value;
+  }
+});
 
 formFields.forEach(field => {
-  document.getElementById(field).addEventListener('input', saveFormData);
+  const el = document.getElementById(field);
+  if (el) el.addEventListener('input', saveFormData);
 });
 
 window.addEventListener('load', loadFormData);
@@ -123,14 +158,17 @@ form.addEventListener('submit', (e) => {
   e.preventDefault();
 
   const data = {
+    jenjang: document.getElementById('jenjang').value,
+    category: document.getElementById('category').value,
+    fase: document.getElementById('fase').value,
+    class: document.getElementById('class').value,
+    semester: document.getElementById('semester').value,
     subject: document.getElementById('subject').value,
-    level: document.getElementById('level').value,
     topic: document.getElementById('topic').value,
-    cp: cpSelectEl.value || cpTextArea.value,
+    cp: document.getElementById('cp').value,
     duration: document.getElementById('duration').value,
     model: document.getElementById('model').value,
-    isDifferentiated: document.getElementById('differentiation').checked,
-    fase: faseEl.value
+    isDifferentiated: false // Hidden or default for now
   };
 
   generateModul(data);
@@ -555,11 +593,13 @@ function renderResult(data, tps, atp, steps, assessment, extras, rubric) {
 
   let html = `
     <div class="info-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 0.9rem; padding: 15px; background: var(--primary-light); border-radius: 8px;">
+      <div><strong>Jenjang:</strong> ${data.jenjang}</div>
+      <div><strong>Fase:</strong> ${data.fase}</div>
       <div><strong>Mata Pelajaran:</strong> ${data.subject}</div>
-      <div><strong>Kelas/Semester:</strong> ${data.level} / ${data.fase ? 'Fase ' + data.fase : ''}</div>
+      <div><strong>Kelas/Semester:</strong> Kelas ${data.class} / Semester ${data.semester}</div>
       <div><strong>Materi:</strong> ${data.topic}</div>
       <div><strong>Alokasi Waktu:</strong> ${data.duration}</div>
-      <div style="grid-column: span 2;"><strong>Model Pembelajaran:</strong> ${data.model} ${data.isDifferentiated ? '(Berdiferensiasi)' : ''}</div>
+      <div style="grid-column: span 2;"><strong>Model Pembelajaran:</strong> ${data.model}</div>
     </div>
 
     <h2>A. Tujuan Pembelajaran (TP)</h2>

@@ -23,48 +23,52 @@
         <form id="modulForm">
           <div class="form-grid">
             <div class="field">
+              <label for="jenjang">Jenjang Pendidikan</label>
+              <select id="jenjang" required>
+                <option value="">-- Pilih Jenjang --</option>
+                <option value="SD">SD (Sekolah Dasar)</option>
+                <option value="SMP">SMP (Sekolah Menengah Pertama)</option>
+                <option value="SMA">SMA (Sekolah Menengah Atas)</option>
+                <option value="SMK">SMK (Sekolah Menengah Kejuruan)</option>
+              </select>
+            </div>
+            <div class="field">
               <label for="category">Kategori Mapel</label>
-              <select id="category">
-                <option value="custom">-- Pilih Mapel atau Lainnya --</option>
-                <option value="Informatika">Informatika</option>
-                <option value="Matematika">Matematika</option>
-                <option value="Bahasa Indonesia">Bahasa Indonesia</option>
-                <option value="Bahasa Inggris">Bahasa Inggris</option>
+              <select id="category" required>
+                <option value="">-- Pilih Jenjang Terlebih Dahulu --</option>
               </select>
             </div>
             <div class="field">
               <label for="fase">Fase Kurikulum</label>
-              <select id="fase">
-                <option value="">-- Pilih Fase --</option>
-                <option value="A">Fase A (Kelas 1-2)</option>
-                <option value="B">Fase B (Kelas 3-4)</option>
-                <option value="C">Fase C (Kelas 5-6)</option>
-                <option value="D">Fase D (Kelas 7-9)</option>
-                <option value="E">Fase E (Kelas 10)</option>
-                <option value="F">Fase F (Kelas 11-12)</option>
+              <select id="fase" required>
+                <option value="">-- Pilih Jenjang Terlebih Dahulu --</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="class">Kelas</label>
+              <select id="class" required>
+                <option value="">-- Pilih Fase Terlebih Dahulu --</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="semester">Semester</label>
+              <select id="semester" required>
+                <option value="">-- Pilih Semester --</option>
+                <option value="Ganjil">Ganjil</option>
+                <option value="Genap">Genap</option>
               </select>
             </div>
             <div class="field">
               <label for="subject">Nama Mapel Spesifik</label>
               <input type="text" id="subject" placeholder="Contoh: Matematika" required>
             </div>
-            <div class="field">
-              <label for="level">Kelas & Semester</label>
-              <input type="text" id="level" placeholder="Contoh: Kelas VII / Semester 1" required>
-            </div>
             <div class="field full-width">
               <label for="topic">Materi Pembelajaran</label>
               <input type="text" id="topic" placeholder="Judul materi utama" required>
             </div>
-            <div class="field full-width" id="cpSelectField" style="display: none;">
-              <label for="cpSelect">Pilih Capaian Pembelajaran (CP)</label>
-              <select id="cpSelect">
-                <option value="">-- Pilih Elemen CP --</option>
-              </select>
-            </div>
             <div class="field full-width" id="cpManualField">
               <label for="cp">Isi Capaian Pembelajaran (CP)</label>
-              <textarea id="cp" placeholder="Salin CP dari regulasi atau tulis manual di sini..."></textarea>
+              <textarea id="cp" placeholder="Salin CP dari regulasi atau tulis manual di sini..." required></textarea>
             </div>
             <div class="field">
               <label for="duration">Alokasi Waktu</label>
