@@ -734,8 +734,3 @@ function renderResult(data, tps, atp, steps, assessment, extras, rubric) {
   resultDiv.style.display = 'block';
   resultDiv.scrollIntoView({ behavior: 'smooth' });
 }
-
-modulContent.innerHTML = html;
-resultDiv.style.display = 'block';
-resultDiv.scrollIntoView({ behavior: 'smooth' });
-}
