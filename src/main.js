@@ -319,11 +319,7 @@ function generateSteps(model, topic, tps, isDifferentiated) {
         'Menyimak tujuan pembelajaran.'
       ]
     },
-    inti: {
-      memahami: { guru: [], siswa: [] },
-      mengaplikasi: { guru: [], siswa: [], diferensiasi: null },
-      merefleksi: { guru: [], siswa: [] }
-    },
+    inti: [], // Akan diisi sesuai fase model
     penutup: {
       guru: [
         'Membimbing siswa menyimpulkan hasil pembelajaran.',
@@ -335,181 +331,255 @@ function generateSteps(model, topic, tps, isDifferentiated) {
         'Membuat resume atau kesimpulan materi.',
         'Mengungkapkan perasaan dan pemahaman setelah belajar.',
         'Mencatat informasi tugas/materi berikutnya.',
-        'Berdoa and menjawab salam.'
+        'Berdoa dan menjawab salam.'
       ]
     }
   };
 
-  // Logika Spesifik Model
-  switch (model) {
-    case 'Project Based Learning':
-      baseSteps.inti.memahami = {
-        guru: [`Menyajikan tantangan proyek nyata tentang ${topic}.`, 'Membantu siswa membentuk kelompok dan merancang desain proyek.'],
-        siswa: ['Mengidentifikasi masalah yang akan diselesaikan melalui proyek.', 'Menyusun rencana dan jadwal pelaksanaan proyek kelompok.']
-      };
-      baseSteps.inti.mengaplikasi = {
-        guru: ['Memantau jalannya proyek dan memberikan pendampingan (scaffolding).', 'Memfasilitasi diskusi kelompok saat menemui kendala teknis.'],
-        siswa: ['Melaksanakan langkah-langkah proyek secara kolaboratif.', 'Menguji hasil proyek dan melakukan perbaikan jika diperlukan.']
-      };
-      if (isDifferentiated) {
-        baseSteps.inti.mengaplikasi.diferensiasi = {
+  const modelPhases = {
+    'Project Based Learning': [
+      {
+        name: 'Fase 1: Pertanyaan Mendasar',
+        guru: [`Menyajikan tantangan atau pertanyaan esensial tentang ${topic} yang membangkitkan rasa ingin tahu.`],
+        siswa: [`Mengidentifikasi masalah dan tantangan nyata terkait ${topic} yang akan diselesaikan.`]
+      },
+      {
+        name: 'Fase 2: Mendesain Perencanaan Produk',
+        guru: ['Membantu siswa membentuk kelompok heterogen.', 'Memastikan setiap kelompok merancang desain proyek dan memilih alat/bahan yang sesuai.'],
+        siswa: ['Berdiskusi dalam kelompok untuk merancang langkah-langkah pembuatan proyek.', 'Menentukan pembagian tugas dalam tim.']
+      },
+      {
+        name: 'Fase 3: Menyusun Jadwal Pembuatan',
+        guru: ['Membimbing siswa menyusun timeline penyelesaian proyek agar selesai tepat waktu.'],
+        siswa: ['Membuat jadwal aktivitas yang mendetail dari awal hingga pengujian produk akhir.']
+      },
+      {
+        name: 'Fase 4: Memonitor Keaktifan dan Perkembangan Proyek',
+        guru: ['Memantau jalannya proyek dan memberikan pendampingan (scaffolding).', 'Memfasilitasi diskusi saat siswa menemui kendala teknis.'],
+        siswa: ['Melaksanakan langkah-langkah proyek secara kolaboratif (Tahap Mengaplikasi).', 'Mendokumentasikan setiap tahapan perkembangan karya.'],
+        diferensiasi: isDifferentiated ? {
           berjuang: 'Mempraktikkan langkah dasar proyek dengan panduan template/lembar kerja terstruktur.',
           menengah: 'Menyelesaikan proyek sesuai rencana kelompok dengan konsultasi berkala.',
           mahir: 'Mengembangkan fitur tambahan atau analisis mendalam pada proyek yang melebihi standar dasar.'
-        };
+        } : null
+      },
+      {
+        name: 'Fase 5: Menguji Hasil',
+        guru: ['Memfasilitasi presentasi atau unjuk karya (expo) hasil proyek.', 'Memberikan penilaian terhadap kualitas produk dan pemahaman konsep.'],
+        siswa: ['Mempresentasikan hasil proyek di depan kelas.', 'Mendemonstrasikan bagaimana proyek tersebut memecahkan masalah awal.']
+      },
+      {
+        name: 'Fase 6: Evaluasi Pengalaman Belajar',
+        guru: ['Membimbing refleksi terhadap seluruh proses pengerjaan proyek.', 'Memberikan penguatan jika ada konsep yang belum tuntas.'],
+        siswa: ['Melakukan evaluasi diri dan rekan sejawat.', 'Menyimpulkan pembelajaran baru yang didapat (Tahap Merefleksi).']
       }
-      baseSteps.inti.merefleksi = {
-        guru: ['Memfasilitasi presentasi hasil proyek (expo).', 'Memberikan umpan balik konstruktif terhadap proses dan hasil karya.'],
-        siswa: ['Mempresentasikan hasil proyek di depan kelas.', 'Melakukan evaluasi diri dan rekan sejawat terkait kontribusi dalam kelompok.']
-      };
-      break;
-
-    case 'Problem Based Learning':
-      baseSteps.inti.memahami = {
-        guru: [`Menyajikan skenario masalah kontekstual terkait ${topic}.`, 'Memastikan setiap siswa memahami batasan masalah yang diberikan.'],
-        siswa: ['Menganalisis fenomena masalah yang disajikan.', 'Mendefinisikan masalah yang perlu dicari solusinya.']
-      };
-      baseSteps.inti.mengaplikasi = {
-        guru: ['Mendorong siswa mencari referensi dan data pendukung.', 'Membimbing jalannya diskusi pemecahan masalah.'],
-        siswa: ['Melakukan penyelidikan melalui literasi dan diskusi.', 'Menyusun draf solusi atau gagasan penyelesaian masalah.']
-      };
-      if (isDifferentiated) {
-        baseSteps.inti.mengaplikasi.diferensiasi = {
+    ],
+    'Problem Based Learning': [
+      {
+        name: 'Fase 1: Orientasi Peserta Didik pada Masalah',
+        guru: [`Menyajikan skenario masalah kontekstual yang kompleks terkait ${topic}.`],
+        siswa: [`Menganalisis fenomena masalah dan merumuskan pertanyaan kunci (Tahap Memahami).`]
+      },
+      {
+        name: 'Fase 2: Mengorganisasikan Peserta Didik untuk Belajar',
+        guru: ['Memastikan setiap siswa memahami batasan masalah dan pembagian peran dalam kelompok.'],
+        siswa: ['Membagi tugas investigasi dalam kelompok secara adil.']
+      },
+      {
+        name: 'Fase 3: Membimbing Penyelidikan Individu maupun Kelompok',
+        guru: ['Mendorong siswa mencari berbagai referensi data pendukung.', 'Membimbing jalannya diskusi pemecahan masalah agar tetap fokus.'],
+        siswa: ['Melakukan penyelidikan melalui literasi, observasi, atau wawancara (Tahap Mengaplikasi).'],
+        diferensiasi: isDifferentiated ? {
           berjuang: 'Mengidentifikasi 1 solusi sederhana dengan bimbingan intensif dalam mengolah data awal.',
           menengah: 'Membandingkan 2-3 alternatif solusi dan memilih yang paling efektif secara mandiri.',
           mahir: 'Menganalisis dampak jangka panjang dari solusi yang diusulkan dan menyusun argumen kritis.'
-        };
+        } : null
+      },
+      {
+        name: 'Fase 4: Mengembangkan dan Menyajikan Hasil Karya',
+        guru: ['Membimbing siswa menyusun laporan atau media presentasi yang tepat.'],
+        siswa: ['Menyusun solusi akhir dalam bentuk draf, poster, atau presentasi digital.']
+      },
+      {
+        name: 'Fase 5: Menganalisis dan Mengevaluasi Proses Pemecahan Masalah',
+        guru: ['Meminta siswa menyajikan hasil pemikiran mereka dan memfasilitasi tanya jawab.', 'Melakukan klarifikasi dan penguatan konsep.'],
+        siswa: ['Mempresentasikan solusi dan memberikan argumen logis.', 'Merefleksikan efektivitas langkah pemecahan masalah yang dilakukan (Tahap Merefleksi).']
       }
-      baseSteps.inti.merefleksi = {
-        guru: ['Meminta siswa menyajikan hasil pemikiran mereka.', 'Melakukan klarifikasi dan penguatan konsep agar pemahaman tidak melenceng.'],
-        siswa: ['Mempresentasikan solusi yang dipilih dan alasannya.', 'Menyimpulkan pemahaman baru yang didapat dari proses pemecahan masalah.']
-      };
-      break;
-
-    case 'Discovery Learning':
-      baseSteps.inti.memahami = {
-        guru: [`Memberikan stimulus berupa data atau objek terkait ${topic}.`, 'Mengarahkan siswa untuk mengamati keunikan data tersebut.'],
-        siswa: ['Melakukan observasi mendalam terhadap objek studi.', 'Merumuskan identifikasi masalah atau pertanyaan penelitian.']
-      };
-      baseSteps.inti.mengaplikasi = {
-        guru: ['Memfasilitasi pengumpulan data melalui eksperimen/eksplorasi.', 'Membimbing siswa dalam mengolah informasi yang ditemukan.'],
-        siswa: ['Mengumpulkan informasi relevan secara mandiri atau berkelompok.', 'Mencoba menghubungkan antar data yang ditemukan untuk mencari pola.']
-      };
-      if (isDifferentiated) {
-        baseSteps.inti.mengaplikasi.diferensiasi = {
+    ],
+    'Discovery Learning': [
+      {
+        name: 'Fase 1: Stimulation (Pemberian Rangsangan)',
+        guru: [`Memberikan stimulus berupa data, gambar, atau video anomali terkait ${topic}.`],
+        siswa: [`Melakukan observasi awal dan merasakan adanya ketidakpastian/keingintahuan.`]
+      },
+      {
+        name: 'Fase 2: Problem Statement (Identifikasi Masalah)',
+        guru: ['Mengarahkan siswa untuk merumuskan hipotesis atau pertanyaan penelitian.'],
+        siswa: ['Menyusun daftar pertanyaan yang ingin dicari jawabannya melalui aktivitas ini (Tahap Memahami).']
+      },
+      {
+        name: 'Fase 3: Data Collection (Pengumpulan Data)',
+        guru: ['Memfasilitasi sarana eksplorasi baik secara fisik maupun digital.'],
+        siswa: ['Mengumpulkan data relevan melalui percobaan atau pencarian literatur.']
+      },
+      {
+        name: 'Fase 4: Data Processing (Pengolahan Data)',
+        guru: ['Membimbing siswa mengklasifikasikan data untuk menemukan pola tertentu.'],
+        siswa: ['Mengolah data dan menghubungkan antar fakta yang ditemukan (Tahap Mengaplikasi).'],
+        diferensiasi: isDifferentiated ? {
           berjuang: 'Mengolah data menggunakan tabel bantu yang sudah disediakan guru.',
           menengah: 'Menyusun data secara mandiri dan menemukan pola umum dari fenomena yang diamati.',
-          mahir: 'Merumuskan generalisasi/prinsip baru berdasarkan anomali atau data kompleks yang ditemukan.'
-        };
+          mahir: 'Merumuskan hubungan kompleks antar variabel berdasarkan data yang ditemukan.'
+        } : null
+      },
+      {
+        name: 'Fase 5: Verification (Pembuktian)',
+        guru: ['Membimbing siswa mencocokkan hasil olah data dengan teori yang ada.'],
+        siswa: ['Melakukan verifikasi temuan mereka dengan sumber tepercaya.']
+      },
+      {
+        name: 'Fase 6: Generalization (Menarik Kesimpulan)',
+        guru: ['Meninjau kesimpulan siswa dan memberikan penguatan konsep secara saintifik.'],
+        siswa: ['Menarik kesimpulan umum (prinsip) dari hasil pembuktian (Tahap Merefleksi).']
       }
-      baseSteps.inti.merefleksi = {
-        guru: ['Meninjau kesimpulan yang dibuat siswa apakah sudah sesuai prinsip ilmiah.', 'Memberikan apresiasi atas proses penemuan mandiri.'],
-        siswa: ['Menarik kesimpulan umum (generalisasi) dari hasil olah data.', 'Memverifikasi temuan dengan sumber tepercaya.']
-      };
-      break;
-
-    case 'Inquiry Learning':
-      baseSteps.inti.memahami = {
-        guru: [`Mengajukan pertanyaan besar yang menantang keingintahuan siswa tentang ${topic}.`, 'Menyusun landasan teori dasar bagi investigasi siswa.'],
-        siswa: ['Mempertanyakan fakta-fakta yang ada di sekitarnya.', 'Menyusun hipotesis atau dugaan sementara.']
-      };
-      baseSteps.inti.mengaplikasi = {
-        guru: ['Menyediakan sarana investigasi (alat/bahan/link sumber).', 'Bertindak sebagai konsultan selama proses pencarian data.'],
-        siswa: ['Menguji hipotesis melalui pengumpulan dan analisis data.', 'Menyusun argumen berdasarkan bukti yang ditemukan.']
-      };
-      if (isDifferentiated) {
-        baseSteps.inti.mengaplikasi.diferensiasi = {
+    ],
+    'Inquiry Learning': [
+      {
+        name: 'Fase 1: Orientasi',
+        guru: [`Membina suasana belajar yang kondusif dan memberikan gambaran fenomena ${topic}.`],
+        siswa: [`Memperhatikan fenomena yang disajikan dengan rasa ingin tahu.`]
+      },
+      {
+        name: 'Fase 2: Merumuskan Masalah',
+        guru: ['Mengajukan pertanyaan menantang yang memerlukan investigasi lanjut.'],
+        siswa: ['Mendefinisikan masalah penelitian secara mandiri (Tahap Memahami).']
+      },
+      {
+        name: 'Fase 3: Merumuskan Hipotesis',
+        guru: ['Membimbing siswa menyusun dugaan sementara berdasarkan pengetahuan awal.'],
+        siswa: ['Menyusun hipotesis yang akan diuji kebenarannya.']
+      },
+      {
+        name: 'Fase 4: Mengumpulkan Data',
+        guru: ['Menyediakan alat, bahan, atau sumber informasi untuk investigasi.'],
+        siswa: ['Melakukan eksperimen atau pelacakan informasi secara mendalam (Tahap Mengaplikasi).'],
+        diferensiasi: isDifferentiated ? {
           berjuang: 'Melakukan investigasi menggunakan sumber referensi tunggal yang sederhana.',
-          menengah: 'Mengintegrasikan informasi dari berbagai sumber (buku, internet, observasi) untuk menjawab pertanyaan.',
-          mahir: 'Melakukan eksperimen mandiri dengan variabel yang lebih kompleks untuk menguji hipotesis.'
-        };
+          menengah: 'Mengintegrasikan informasi dari berbagai sumber untuk menjawab pertanyaan.',
+          mahir: 'Melakukan eksperimen mandiri dengan variabel yang lebih kompleks.'
+        } : null
+      },
+      {
+        name: 'Fase 5: Menguji Hipotesis',
+        guru: ['Membantu siswa menganalisis apakah data mendukung hipotesis atau tidak.'],
+        siswa: ['Mengolah data untuk membuktikan validitas hipotesis yang dibuat.']
+      },
+      {
+        name: 'Fase 6: Merumuskan Kesimpulan',
+        guru: ['Memfasilitasi diskusi kelas untuk menyepakati kesimpulan ilmiah.'],
+        siswa: ['Mengomunikasikan hasil temuan dan merefleksikan proses berpikir (Tahap Merefleksi).']
       }
-      baseSteps.inti.merefleksi = {
-        guru: ['Memfasilitasi diskusi kritis antar siswa.', 'Menghubungkan hasil temuan siswa dengan konsep yang lebih luas.'],
-        siswa: ['Mengomunikasikan hasil investigasi secara lisan maupun tulisan.', 'Menilai validitas data dan kekuatan argumen yang disusun.']
-      };
-      break;
-
-    case 'Cooperative Learning':
-      baseSteps.inti.memahami = {
-        guru: [`Menjelaskan konsep dasar ${topic} secara singkat.`, 'Membentuk kelompok heterogen dan menjelaskan tanggung jawab individu.'],
-        siswa: ['Menyimak penjelasan awal dari guru.', 'Bergabung dengan kelompok dan memahami peran masing-masing.']
-      };
-      baseSteps.inti.mengaplikasi = {
-        guru: ['Memantau interaksi antar siswa dalam kelompok.', 'Memastikan terjadinya tutor sebaya dalam diskusi.'],
-        siswa: ['Berdiskusi dan saling membantu dalam menyelesaikan tugas kelompok.', 'Menjelaskan pemahaman pribadi kepada anggota kelompok lain.']
-      };
-      if (isDifferentiated) {
-        baseSteps.inti.mengaplikasi.diferensiasi = {
+    ],
+    'Cooperative Learning': [
+      {
+        name: 'Fase 1: Menyampaikan Tujuan dan Memotivasi Siswa',
+        guru: [`Menjelaskan indikator pembelajaran ${topic} dan pentingnya kerja sama tim.`],
+        siswa: [`Memahami target yang harus dicapai bersama tim.`]
+      },
+      {
+        name: 'Fase 2: Menyajikan Informasi',
+        guru: ['Memberikan penjelasan materi inti secara singkat dan menarik.'],
+        siswa: ['Menyimak poin-poin penting yang disampaikan guru (Tahap Memahami).']
+      },
+      {
+        name: 'Fase 3: Mengorganisasikan Siswa ke dalam Kelompok Belajar',
+        guru: ['Membentuk kelompok heterogen dan membagikan lembar kerja kelompok.'],
+        siswa: ['Bergabung dengan tim dan membagi peran tugas (seperti ketua, sekretaris, dll).']
+      },
+      {
+        name: 'Fase 4: Membimbing Kelompok Bekerja dan Belajar',
+        guru: ['Memantau interaksi antar siswa dan memotivasi tutor sebaya.'],
+        siswa: ['Berdiskusi dan saling membantu dalam menuntaskan tugas kelompok (Tahap Mengaplikasi).'],
+        diferensiasi: isDifferentiated ? {
           berjuang: 'Bertanggung jawab pada bagian tugas yang bersifat teknis/prosedural.',
-          menengah: 'Mengkoordinasikan diskusi dan menyatukan berbagai pendapat anggota kelompok.',
-          mahir: 'Memberikan tutorial sebaya dan memimpin analisis tingkat lanjut dalam tugas kelompok.'
-        };
+          menengah: 'Mengkoordinasikan diskusi dan menyatukan berbagai pendapat.',
+          mahir: 'Memberikan tutorial sebaya dan memimpin analisis tingkat lanjut.'
+        } : null
+      },
+      {
+        name: 'Fase 5: Evaluasi',
+        guru: ['Menguji pemahaman kelompok melalui kuis atau presentasi singkat.'],
+        siswa: ['Menyajikan hasil diskusi kelompok di depan kelas atau melalui kuis interaktif.']
+      },
+      {
+        name: 'Fase 6: Memberikan Penghargaan',
+        guru: ['Memberikan apresiasi kepada kelompok dengan kinerja atau perkembangan terbaik.'],
+        siswa: ['Melakukan refleksi atas efektivitas kerja sama mereka (Tahap Merefleksi).']
       }
-      baseSteps.inti.merefleksi = {
-        guru: ['Mengadakan kuis kelompok atau kompetisi antar tim.', 'Memberikan penghargaan kepada kelompok yang paling solid.'],
-        siswa: ['Mengerjakan evaluasi secara individu maupun tim.', 'Melakukan refleksi terhadap cara kerja sama mereka.']
-      };
-      break;
-
-    case 'Game-Based Learning':
-      baseSteps.inti.memahami = {
-        guru: [`Memperkenalkan aturan main dan tantangan (level) terkait ${topic}.`, 'Memberikan tutorial singkat mengenai mekanik permainan.'],
-        siswa: ['Memahami instruksi dan tujuan dari tantangan yang diberikan.', 'Mencoba simulasi awal dalam permainan.']
-      };
-      baseSteps.inti.mengaplikasi = {
-        guru: ['Bertindak sebagai "Game Master" yang menjaga ritme permainan.', 'Memberikan petunjuk (hint) saat siswa mengalami hambatan progres.'],
-        siswa: ['Menyelesaikan tantangan permainan menggunakan konsep ' + topic + '.', 'Berkompetisi atau berkolaborasi untuk mencapai level tertinggi.']
-      };
-      if (isDifferentiated) {
-        baseSteps.inti.mengaplikasi.diferensiasi = {
+    ],
+    'Game-Based Learning': [
+      {
+        name: 'Fase 1: Persiapan dan Penjelasan (Game On-boarding)',
+        guru: [`Memperkenalkan aturan main, level tantangan, dan target skor terkait ${topic}.`],
+        siswa: [`Memahami mekanik permainan dan hubungannya dengan materi (Tahap Memahami).`]
+      },
+      {
+        name: 'Fase 2: Sesi Bermain (Game Session)',
+        guru: ['Bertindak sebagai moderator/Game Master yang menjaga sportivitas.', 'Memberikan petunjuk (hint) jika siswa mengalami kebuntuan.'],
+        siswa: ['Menyelesaikan tantangan dalam game menggunakan konsep materi (Tahap Mengaplikasi).'],
+        diferensiasi: isDifferentiated ? {
           berjuang: 'Menyelesaikan misi pada level dasar dengan pengulangan konsep kunci.',
           menengah: 'Menyusun strategi kreatif untuk melewati level kesulitan menengah secara mandiri.',
           mahir: 'Merancang modifikasi aturan atau strategi "expert" dalam permainan.'
-        };
+        } : null
+      },
+      {
+        name: 'Fase 3: De-briefing dan Refleksi',
+        guru: ['Menarik substansi materi dari aktivitas permainan agar tidak sekadar bermain.', 'Membahas strategi yang berhasil.'],
+        siswa: ['Mengaitkan pengalaman bermain dengan konsep nyata dan menyimpulkan pembelajaran (Tahap Merefleksi).']
       }
-      baseSteps.inti.merefleksi = {
-        guru: ['Membahas makna dari setiap kegagalan dan keberhasilan dalam game.', 'Menarik substansi materi dari aktivitas permainan.'],
-        siswa: ['Menganalisis strategi yang berhasil dan yang gagal.', 'Mengaitkan pengalaman bermain dengan konsep materi di dunia nyata.']
-      };
-      break;
-
-    case 'Direct Instruction':
-      baseSteps.inti.memahami = {
-        guru: [`Mendemonstrasikan prosedur atau konsep ${topic} langkah demi langkah.`, 'Memberikan ilustrasi dan analogi yang mudah dipahami.'],
-        siswa: ['Mengamati demonstrasi guru dengan seksama.', 'Bertanya pada bagian yang belum dipahami.']
-      };
-      baseSteps.inti.mengaplikasi = {
-        guru: ['Memberikan latihan terbimbing (guided practice).', 'Memberikan koreksi langsung terhadap kesalahan siswa.'],
-        siswa: ['Mencoba mengerjakan soal/prosedur di bawah pengawasan guru.', 'Memperbaiki kesalahan berdasarkan saran guru.']
-      };
-      if (isDifferentiated) {
-        baseSteps.inti.mengaplikasi.diferensiasi = {
-          berjuang: 'Mengerjakan latihan soal dengan jumlah yang lebih sedikit namun fokus pada pemahaman dasar.',
+    ],
+    'Direct Instruction': [
+      {
+        name: 'Fase 1: Menyampaikan Tujuan dan Mempersiapkan Siswa',
+        guru: [`Menjelaskan apa yang akan dipelajari dan melakukan apersepsi tentang ${topic}.`],
+        siswa: [`Menyiapkan diri dan alat bantu belajar.`]
+      },
+      {
+        name: 'Fase 2: Mendemonstrasikan Pengetahuan atau Keterampilan',
+        guru: ['Menunjukkan langkah-langkah atau prosedur materi secara sistematis.'],
+        siswa: ['Mengamati demonstrasi guru dengan teliti (Tahap Memahami).']
+      },
+      {
+        name: 'Fase 3: Membimbing Pelatihan',
+        guru: ['Memberikan latihan terbimbing (guided practice) secara bertahap.'],
+        siswa: ['Mencoba mempraktikkan keterampilan/pengetahuan di bawah pengawasan guru (Tahap Mengaplikasi).'],
+        diferensiasi: isDifferentiated ? {
+          berjuang: 'Mengerjakan latihan soal dengan jumlah yang lebih sedikit namun fokus pada dasar.',
           menengah: 'Menyelesaikan seluruh soal latihan standar dengan tingkat akurasi tinggi.',
-          mahir: 'Menyelesaikan soal tantangan/pengayaan yang memerlukan penalaran lebih tinggi.'
-        };
+          mahir: 'Menyelesaikan soal tantangan/pengayaan yang memerlukan penalaran tinggi.'
+        } : null
+      },
+      {
+        name: 'Fase 4: Mengecek Pemahaman dan Memberikan Umpan Balik',
+        guru: ['Mengevaluasi hasil latihan siswa dan memperbaiki kesalahan secara langsung.'],
+        siswa: ['Menerima masukan dan melakukan perbaikan mandiri.']
+      },
+      {
+        name: 'Fase 5: Memberikan Kesempatan untuk Pelatihan Lanjutan dan Penerapan',
+        guru: ['Memberikan tugas mandiri untuk memperkuat penguasaan materi.'],
+        siswa: ['Menerapkan konsep secara mandiri pada konteks yang berbeda (Tahap Merefleksi).']
       }
-      baseSteps.inti.merefleksi = {
-        guru: ['Memberikan latihan mandiri (independent practice).', 'Mengecek pemahaman akhir melalui kuis singkat.'],
-        siswa: ['Menyelesaikan tugas secara mandiri tanpa bantuan guru.', 'Memastikan diri telah menguasai setiap tahapan materi.']
-      };
-      break;
+    ]
+  };
 
-    default:
-      baseSteps.inti.memahami = {
-        guru: ['Menjelaskan konsep utama materi.'],
-        siswa: ['Menyimak dan mencatat poin penting.']
-      };
-      baseSteps.inti.mengaplikasi = {
-        guru: ['Memberikan tugas latihan.'],
-        siswa: ['Mengerjakan tugas secara mandiri.']
-      };
-      baseSteps.inti.merefleksi = {
-        guru: ['Membahas hasil tugas.'],
-        siswa: ['Memperbaiki pemahaman yang keliru.']
-      };
-  }
+  baseSteps.inti = modelPhases[model] || [
+    {
+      name: 'Kegiatan Inti',
+      guru: ['Menjelaskan konsep utama materi.', 'Memberikan tugas latihan.', 'Membahas hasil tugas.'],
+      siswa: ['Menyimak dan mencatat poin penting.', 'Mengerjakan tugas secara mandiri.', 'Memperbaiki pemahaman yang keliru.']
+    }
+  ];
 
   return baseSteps;
 }
@@ -646,52 +716,36 @@ function renderResult(data, tps, atp, steps, assessment, extras, rubric) {
     <div style="margin-bottom: 20px;">
       <h3>2. Kegiatan Inti (${data.model})</h3>
       
-      <p style="margin: 10px 0 5px 0; font-weight: bold; color: var(--primary);">Fase A: Memahami</p>
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-        <tr>
-          <td style="width: 50%; padding: 8px; border: 1px solid var(--border); vertical-align: top;">
-            <ul>${steps.inti.memahami.guru.map(s => `<li>${s}</li>`).join('')}</ul>
-          </td>
-          <td style="width: 50%; padding: 8px; border: 1px solid var(--border); vertical-align: top;">
-            <ul>${steps.inti.memahami.siswa.map(s => `<li>${s}</li>`).join('')}</ul>
-          </td>
-        </tr>
-      </table>
-
-      <p style="margin: 15px 0 5px 0; font-weight: bold; color: var(--primary);">Fase B: Mengaplikasi</p>
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-        <tr>
-          <td style="width: 50%; padding: 8px; border: 1px solid var(--border); vertical-align: top;">
-            <ul>${steps.inti.mengaplikasi.guru.map(s => `<li>${s}</li>`).join('')}</ul>
-          </td>
-          <td style="width: 50%; padding: 8px; border: 1px solid var(--border); vertical-align: top;">
-            <ul>${steps.inti.mengaplikasi.siswa.map(s => `<li>${s}</li>`).join('')}</ul>
-          </td>
-        </tr>
-      </table>
-
-      ${steps.inti.mengaplikasi.diferensiasi ? `
-        <div style="margin-top: 10px; padding: 10px; border: 1px dashed var(--accent); border-radius: 8px; background: #fffcf0;">
-          <p style="margin: 0 0 5px 0; font-weight: bold; font-size: 0.85rem; color: #b45309;">Diferensiasi Proses:</p>
-          <ul style="font-size: 0.85rem; margin-bottom: 0;">
-            <li><strong>Kelompok Belum Siap:</strong> ${steps.inti.mengaplikasi.diferensiasi.berjuang}</li>
-            <li><strong>Kelompok Siap:</strong> ${steps.inti.mengaplikasi.diferensiasi.menengah}</li>
-            <li><strong>Kelompok Mahir:</strong> ${steps.inti.mengaplikasi.diferensiasi.mahir}</li>
-          </ul>
+      ${steps.inti.map((phase, index) => `
+        <div style="margin-top: 15px;">
+          <p style="margin: 0 0 5px 0; font-weight: bold; color: var(--primary);">${phase.name}</p>
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <tr style="background: #fdfdfd;">
+              <th style="width: 50%; padding: 6px; border: 1px solid var(--border); text-align: left; font-size: 0.8rem; color: #666;">Aktivitas Guru</th>
+              <th style="width: 50%; padding: 6px; border: 1px solid var(--border); text-align: left; font-size: 0.8rem; color: #666;">Aktivitas Peserta Didik</th>
+            </tr>
+            <tr>
+              <td style="width: 50%; padding: 8px; border: 1px solid var(--border); vertical-align: top;">
+                <ul style="margin: 0; padding-left: 18px;">${phase.guru.map(s => `<li>${s}</li>`).join('')}</ul>
+              </td>
+              <td style="width: 50%; padding: 8px; border: 1px solid var(--border); vertical-align: top;">
+                <ul style="margin: 0; padding-left: 18px;">${phase.siswa.map(s => `<li>${s}</li>`).join('')}</ul>
+              </td>
+            </tr>
+          </table>
+          
+          ${phase.diferensiasi ? `
+            <div style="margin-top: 8px; padding: 10px; border: 1px dashed var(--accent); border-radius: 8px; background: #fffcf0;">
+              <p style="margin: 0 0 5px 0; font-weight: bold; font-size: 0.85rem; color: #b45309;">Diferensiasi Proses:</p>
+              <ul style="font-size: 0.85rem; margin-bottom: 0;">
+                <li><strong>Kelompok Belum Siap:</strong> ${phase.diferensiasi.berjuang}</li>
+                <li><strong>Kelompok Siap:</strong> ${phase.diferensiasi.menengah}</li>
+                <li><strong>Kelompok Mahir:</strong> ${phase.diferensiasi.mahir}</li>
+              </ul>
+            </div>
+          ` : ''}
         </div>
-      ` : ''}
-
-      <p style="margin: 15px 0 5px 0; font-weight: bold; color: var(--primary);">Fase C: Merefleksi</p>
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-        <tr>
-          <td style="width: 50%; padding: 8px; border: 1px solid var(--border); vertical-align: top;">
-            <ul>${steps.inti.merefleksi.guru.map(s => `<li>${s}</li>`).join('')}</ul>
-          </td>
-          <td style="width: 50%; padding: 8px; border: 1px solid var(--border); vertical-align: top;">
-            <ul>${steps.inti.merefleksi.siswa.map(s => `<li>${s}</li>`).join('')}</ul>
-          </td>
-        </tr>
-      </table>
+      `).join('')}
     </div>
 
     <div style="margin-bottom: 20px;">
