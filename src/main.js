@@ -46,7 +46,7 @@ const FASE_CLASSES = {
   'F': [11, 12]
 };
 
-const formFields = ['jenjang', 'category', 'fase', 'class', 'semester', 'subject', 'topic', 'cp', 'duration', 'model'];
+const formFields = ['jenjang', 'category', 'fase', 'class', 'semester', 'subject', 'topic', 'cp', 'duration', 'model', 'isDifferentiated'];
 
 function saveFormData() {
   const data = {};
@@ -168,7 +168,7 @@ form.addEventListener('submit', (e) => {
     cp: document.getElementById('cp').value,
     duration: document.getElementById('duration').value,
     model: document.getElementById('model').value,
-    isDifferentiated: false // Hidden or default for now
+    isDifferentiated: document.getElementById('isDifferentiated').checked
   };
 
   generateModul(data);
