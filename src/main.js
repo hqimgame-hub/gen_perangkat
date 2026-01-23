@@ -507,12 +507,20 @@ function generateSteps(model, topicString, tps, isDifferentiated, numMeetingsRaw
       meetingPhases = selectedPhases;
     }
 
+    const meetingPendahuluan = getPendahuluan(currentTopic, pemantik, pemahaman);
+
+    // [MODIFIKASI] Asesmen Diagnostik di Pertemuan 1
+    if (i === 0) {
+      meetingPendahuluan.guru.splice(2, 0, 'Melakukan Asesmen Diagnostik Awal (Kognitif & Non-Kognitif) untuk memetakan kesiapan belajar siswa.');
+      meetingPendahuluan.siswa.splice(2, 0, 'Mengerjakan asesmen diagnostik awal dengan jujur.');
+    }
+
     meetings.push({
       meeting: i + 1,
       topic: currentTopic,
       pemahaman: pemahaman,
       pemantik: pemantik,
-      pendahuluan: getPendahuluan(currentTopic, pemantik, pemahaman),
+      pendahuluan: meetingPendahuluan,
       inti: meetingPhases,
       penutup: getPenutup()
     });
@@ -547,8 +555,8 @@ function generateAssessment(model, topic, tps) {
   // 1. Asesmen Formatif (Awal)
   assessment.push({
     jenis: 'Formatif (Awal)',
-    teknik: 'Diagnostik Non-Kognitif & Pertanyaan Pemantik',
-    instrumen: `Daftar cek kesiapan belajar terkait ${topic}.`
+    teknik: 'Asesmen Diagnostik (Kognitif & Non-Kognitif)',
+    instrumen: `Lembar diagnostik kesiapan belajar & pemahaman awal materi ${topic}.`
   });
 
   // 2. Asesmen Formatif (Proses) - Disesuaikan dengan Model
