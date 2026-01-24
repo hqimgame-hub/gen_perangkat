@@ -5,8 +5,11 @@ import { saveAs } from 'file-saver'
 const form = document.getElementById('modulForm');
 const resultDiv = document.getElementById('result');
 const modulContent = document.getElementById('modulContent');
+const lkpdContent = document.getElementById('lkpdContent');
 const resultTitle = document.getElementById('resultTitle');
 const exportWordBtn = document.getElementById('exportWord');
+const btnTabModul = document.getElementById('btnTabModul');
+const btnTabLKPD = document.getElementById('btnTabLKPD');
 
 const KKO = {
   C1: ['Menyebutkan', 'Menjelaskan', 'Mengidentifikasi', 'Menunjukkan'],
@@ -177,27 +180,21 @@ form.addEventListener('submit', (e) => {
 });
 
 // Tab Navigation Logic
-const btnTabModul = document.getElementById('btnTabModul');
-const btnTabLKPD = document.getElementById('btnTabLKPD');
-const modulContentDiv = document.getElementById('modulContent');
-const lkpdContentDiv = document.getElementById('lkpdContent');
-const resultTitle = document.getElementById('resultTitle');
-
 function switchTab(tab) {
   if (tab === 'modul') {
     btnTabModul.classList.add('active');
     btnTabLKPD.classList.remove('active');
-    modulContentDiv.style.display = 'block';
-    lkpdContentDiv.style.display = 'none';
-    modulContentDiv.classList.add('active');
-    lkpdContentDiv.classList.remove('active');
+    modulContent.style.display = 'block';
+    lkpdContent.style.display = 'none';
+    modulContent.classList.add('active');
+    lkpdContent.classList.remove('active');
   } else {
     btnTabModul.classList.remove('active');
     btnTabLKPD.classList.add('active');
-    modulContentDiv.style.display = 'none';
-    lkpdContentDiv.style.display = 'block';
-    modulContentDiv.classList.remove('active');
-    lkpdContentDiv.classList.add('active');
+    modulContent.style.display = 'none';
+    lkpdContent.style.display = 'block';
+    modulContent.classList.remove('active');
+    lkpdContent.classList.add('active');
   }
 }
 
@@ -206,7 +203,7 @@ btnTabLKPD.addEventListener('click', () => switchTab('lkpd'));
 
 exportWordBtn.addEventListener('click', async () => {
   const isModulActive = btnTabModul.classList.contains('active');
-  const content = isModulActive ? modulContentDiv.innerHTML : lkpdContentDiv.innerHTML;
+  const content = isModulActive ? modulContent.innerHTML : lkpdContent.innerHTML;
   const fileName = isModulActive ? `Modul Ajar - ${resultTitle.innerText.split(': ')[1] || 'Export'}` : `LKPD - ${resultTitle.innerText.split(': ')[1] || 'Export'}`;
 
   // Wrap content with basic HTML structure for Word
@@ -974,7 +971,7 @@ function renderResult(data, tps, atp, steps, assessment, extras, rubric) {
 
 function generateLKPD(data) {
   const lkpdHTML = renderLKPD(data);
-  lkpdContentDiv.innerHTML = lkpdHTML;
+  lkpdContent.innerHTML = lkpdHTML;
 }
 
 function renderLKPD(data) {
