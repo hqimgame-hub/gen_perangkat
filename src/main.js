@@ -894,77 +894,265 @@ function renderLKPD(data) {
   `;
 }
 
-function getModelActivities(model) {
+function generateLKPD(data) {
+  const lkpdHTML = renderLKPD(data);
+  lkpdContent.innerHTML = lkpdHTML;
+}
+
+function renderLKPD(data) {
+  // Generate TPs again (since we didn't pass them, we regenerate for consistency or should have passed them)
+  const tps = generateTP(data.cp, data.topic);
+  const displayTPs = tps.slice(0, 3).map(tp => `<li>${tp}</li>`).join('');
+
+  const hotsQuestions = getHOTSQuestions(data.topic);
+
+  // Logic Multi-Pertemuan (Bundled)
+  const numMeetings = parseInt(data.pertemuan) || 1;
+  let activitiesContent = '';
+
+  for (let i = 1; i <= numMeetings; i++) {
+    const meetingActivities = getModelActivities(data.model, data.topic, i, numMeetings);
+    activitiesContent += `
+        <div class="lkpd-section" style="break-before: page; margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 20px;">
+            <div class="lkpd-title">KEGIATAN PEMBELAJARAN PERTEMUAN KE-${i}</div>
+            ${meetingActivities}
+        </div>
+     `;
+  }
+
+  return `
+    <div class="lkpd-container">
+      <div class="lkpd-header">
+        <h2>LEMBAR KERJA PESERTA DIDIK (LKPD)</h2>
+        <h3>${data.subject} - Kelas ${data.class}</h3>
+        <p><strong>Topik Materi:</strong> ${data.topic}</p>
+      </div>
+
+      <div class="lkpd-name-box">
+        <div>
+            <strong>Nama Kelompok:</strong> ............................................<br>
+            <strong>Anggota:</strong>
+            <ol style="margin-top: 5px; padding-left: 20px; margin-bottom: 0;">
+                <li>....................................</li>
+                <li>....................................</li>
+                <li>....................................</li>
+                <li>....................................</li>
+            </ol>
+        </div>
+        <div style="text-align: right; min-width: 150px;">
+            <strong>Kelas:</strong> ....................<br><br>
+            <strong>Nilai:</strong> ....................
+        </div>
+      </div>
+
+      <div class="lkpd-section">
+        <div class="lkpd-title">A. TUJUAN PEMBELAJARAN</div>
+        <ul style="padding-left: 20px; margin-top: 5px;">
+            ${displayTPs}
+        </ul>
+      </div>
+
+      <div class="lkpd-section">
+        <div class="lkpd-title">B. STIMULUS & PEMANTIK</div>
+        <div style="border: 1px solid #333; padding: 15px; background: #eee; margin-bottom: 15px; text-align: center; font-style: italic;">
+            [Guru dapat menempelkan Gambar/Artikel berita terkait "${data.topic.split('\n')[0]}" di sini sebagai pemantik diskusi]
+        </div>
+        <p><strong>Pertanyaan Pemantik:</strong></p>
+        <ol>
+            ${hotsQuestions.map(q => `<li>${q}<div class="write-line"></div></li>`).join('')}
+        </ol>
+      </div>
+
+      <div class="lkpd-section">
+        <div class="lkpd-title">C. PETUNJUK KERJA</div>
+        <ol>
+            <li>Berdoalah sebelum memulai kegiatan.</li>
+            <li>Bacalah stimulus di atas dengan teliti.</li>
+            <li>Kerjakan aktivitas berikut secara berkelompok/mandiri sesuai instruksi guru.</li>
+        </ol>
+      </div>
+
+      ${activitiesContent}
+
+      <div class="lkpd-section">
+        <div class="lkpd-title">D. REFLEKSI AKHIR</div>
+        <p>Bagaimana pemahamanmu tentang materi ini hari ini? Apakah bermanfaat bagi kehidupanmu?</p>
+        <div class="write-area" style="height: 100px;"></div>
+      </div>
+      
+      <div class="lkpd-section" style="margin-top: 50px; text-align: right;">
+        <p>Mengetahui,<br>Guru Mata Pelajaran</p>
+        <br><br><br>
+        <p>( ............................................ )</p>
+      </div>
+    </div>
+  `;
+}
+
+// Helper: Generates HOTS Questions
+function getHOTSQuestions(topicString) {
+  const topics = topicString.split('\n').map(t => t.trim()).filter(t => t);
+  const mainTopic = topics[0] || "materi ini";
+
+  // Randomize HOTS templates
+  const templates = [
+    `Mengapa pemahaman tentang ${mainTopic} penting bagi kehidupan kita?`,
+    `Bagaimana dampak jika ${mainTopic} tidak dikelola/dipahami dengan baik?`,
+    `Analisislah hubungan antara ${mainTopic} dengan lingkungan sekitarmu!`,
+    `Berikan contoh penerapan ${mainTopic} yang paling sering kamu temui!`
+  ];
+
+  // Return 2 random unique questions
+  return templates.sort(() => 0.5 - Math.random()).slice(0, 2);
+}
+
+function getModelActivities(model, topicString, meetingNum, totalMeetings) {
+  const topics = topicString.split('\n').map(t => t.trim()).filter(t => t);
+  const currentTopic = topics[(meetingNum - 1) % topics.length] || topics[0];
+
+  // Logic: Distinct activities per meeting if possible, or repetitive cycle
+
   switch (model) {
     case 'Problem Based Learning':
       return `
-            <p><strong>Langkah 1: Identifikasi Masalah</strong><br>
-            Amatilah kasus yang diberikan guru, kemudian tuliskan rumusan masalahnya:</p>
-            <div class="write-area"></div>
+            <p><strong>Aktivitas: Investigasi Masalah "${currentTopic}"</strong></p>
             
-            <p style="margin-top: 15px;"><strong>Langkah 2: Penyelidikan</strong><br>
-            Carilah informasi dari berbagai sumber untuk menjawab masalah tersebut. Tuliskan temuanmu pada tabel di bawah:</p>
+            <p style="margin-top: 10px;"><strong>1. Identifikasi & Rumusan Masalah</strong><br>
+            Berdasarkan stimulus atau kasus yang diberikan guru tentang ${currentTopic}, tuliskan rumusan masalah yang ingin kalian pecahkan:</p>
+            <div class="write-area" style="height: 60px;"></div>
+            
+            <p style="margin-top: 15px;"><strong>2. Pengumpulan Data</strong><br>
+            Carilah data pendukung untuk menjawab masalah tersebut:</p>
             <table class="lkpd-table">
-                <tr><th>No</th><th>Sumber Informasi</th><th>Temuan Penting</th></tr>
+                <tr><th width="5%">No</th><th>Fakta/Informasi Ditemukan</th><th>Sumber</th></tr>
                 <tr><td>1</td><td></td><td></td></tr>
                 <tr><td>2</td><td></td><td></td></tr>
                 <tr><td>3</td><td></td><td></td></tr>
             </table>
 
-            <p style="margin-top: 15px;"><strong>Langkah 3: Solusi</strong><br>
-            Berdasarkan temuan di atas, solusi apa yang kalian tawarkan?</p>
+            <p style="margin-top: 15px;"><strong>3. Solusi & Kesimpulan</strong><br>
+            Apa solusi terbaik menurut kelompok kalian untuk masalah ${currentTopic} tersebut?</p>
             <div class="write-area"></div>
         `;
 
     case 'Project Based Learning':
-      return `
-            <p><strong>Langkah 1: Perencanaan Proyek</strong><br>
-            Diskusikan rencana proyek yang akan kalian buat:</p>
-            <table class="lkpd-table">
-                <tr><td width="30%">Nama Proyek</td><td></td></tr>
-                <tr><td>Alat & Bahan</td><td></td></tr>
-                <tr><td>Estimasi Waktu</td><td></td></tr>
-            </table>
+      // Different phase for Meeting 1 vs Meeting 2+
+      if (meetingNum === 1) {
+        return `
+                <p><strong>Aktivitas: Perancangan Proyek "${currentTopic}"</strong></p>
+                <p><strong>1. Menentukan Pertanyaan Mendasar</strong><br>
+                Produk apa yang akan kalian buat untuk menjelaskan/menyelesaikan tantangan ${currentTopic}?</p>
+                <div class="write-area" style="height: 50px;"></div>
 
-            <p style="margin-top: 15px;"><strong>Langkah 2: Jadwal Kegiatan</strong></p>
-            <table class="lkpd-table">
-                <tr><th>Hari/Ke</th><th>Kegiatan</th><th>Penanggung Jawab</th></tr>
-                <tr><td>1</td><td>Desain & Perencanaan</td><td></td></tr>
-                <tr><td>2</td><td>Pembuatan/Pelaksanaan</td><td></td></tr>
-                <tr><td>3</td><td>Finishing & Uji Coba</td><td></td></tr>
-            </table>
-        `;
+                <p style="margin-top: 15px;"><strong>2. Desain & Jadwal Proyek</strong></p>
+                <table class="lkpd-table">
+                    <tr><td width="30%">Nama Proyek</td><td></td></tr>
+                    <tr><td>Alat & Bahan</td><td></td></tr>
+                    <tr><td>Target Selesai</td><td>(Tanggal: ................)</td></tr>
+                </table>
+                <p style="margin-top: 5px;">Rencana Langkah Kerja:</p>
+                <table class="lkpd-table">
+                    <tr><th>Tahap</th><th>Kegiatan</th><th>PJ</th></tr>
+                    <tr><td>Persiapan</td><td></td><td></td></tr>
+                    <tr><td>Pelaksanaan</td><td></td><td></td></tr>
+                    <tr><td>Penyelesaian</td><td></td><td></td></tr>
+                </table>
+            `;
+      } else {
+        return `
+                <p><strong>Aktivitas: Monitoring & Finalisasi Proyek "${currentTopic}"</strong></p>
+                <p><strong>1. Catatan Progres Mingguan</strong><br>
+                Apa saja yang sudah berhasil dikerjakan minggu ini?</p>
+                <div class="write-area" style="height: 60px;"></div>
+
+                <p style="margin-top: 15px;"><strong>2. Kendala & Solusi</strong></p>
+                <table class="lkpd-table">
+                    <tr><th>Kendala yang Dihadapi</th><th>Cara Mengatasi</th></tr>
+                    <tr><td><br><br></td><td></td></tr>
+                </table>
+
+                <p style="margin-top: 15px;"><strong>3. Uji Coba Produk</strong><br>
+                Apakah produk berfungsi sesuai rencana awal? (Ya/Tidak, dan jelaskan)</p>
+                <div class="write-area" style="height: 50px;"></div>
+             `;
+      }
 
     case 'Discovery Learning':
       return `
-             <p><strong>Langkah 1: Stimulus & Identifikasi</strong><br>
-             Perhatikan gambar/video yang disajikan. Tuliskan hipotesis (dugaan sementara) kalian:</p>
-             <div class="write-area"></div>
+             <p><strong>Aktivitas: Eksplorasi Konsep "${currentTopic}"</strong></p>
+             
+             <p><strong>1. Stimulasi & Hipotesis</strong><br>
+             Apa dugaan sementaramu tentang karakteristik ${currentTopic}?</p>
+             <div class="write-area" style="height: 50px;"></div>
 
-             <p style="margin-top: 15px;"><strong>Langkah 2: Pengumpulan Data</strong></p>
+             <p style="margin-top: 15px;"><strong>2. Pengumpulan Informasi</strong></p>
              <table class="lkpd-table">
-                <tr><th>Variabel Pengamatan</th><th>Hasil Pengamatan</th></tr>
-                <tr><td>Objek A</td><td></td></tr>
-                <tr><td>Objek B</td><td></td></tr>
+                <tr><th>Objek Pengamatan</th><th>Ciri-ciri/Hasil Data</th></tr>
+                <tr><td>1. .....................</td><td></td></tr>
+                <tr><td>2. .....................</td><td></td></tr>
+                <tr><td>3. .....................</td><td></td></tr>
              </table>
 
-             <p style="margin-top: 15px;"><strong>Langkah 3: Pembuktian</strong><br>
-             Apakah hipotesis awal kalian sesuai dengan data? Jelaskan!</p>
+             <p style="margin-top: 15px;"><strong>3. Pembuktian & Generalisasi</strong><br>
+             Bandingkan data di atas dengan hipotesis awalmu. Apa kesimpulannya?</p>
              <div class="write-area"></div>
         `;
 
+    case 'Inquiry Learning':
+      return `
+             <p><strong>Aktivitas: Penyelidikan Ilmiah "${currentTopic}"</strong></p>
+
+             <p><strong>1. Merumuskan Masalah</strong><br>
+             Pertanyaan apa yang ingin kalian jawab melalui percobaan ini?</p>
+             <div class="write-line"></div>
+
+             <p style="margin-top: 15px;"><strong>2. Eksperimen/Observasi</strong></p>
+             <table class="lkpd-table">
+                <tr><th>Perlakuan/Variabel</th><th>Respon/Hasil</th></tr>
+                <tr><td></td><td></td></tr>
+                <tr><td></td><td></td></tr>
+             </table>
+
+             <p style="margin-top: 15px;"><strong>3. Analisis Data</strong><br>
+             Jelaskan hubungan sebab-akibat yang kalian temukan!</p>
+             <div class="write-area"></div>
+        `;
+
+    case 'Cooperative Learning':
+    case 'Game-Based Learning':
+      return `
+            <p><strong>Aktivitas: Diskusi & Permainan Tim "${currentTopic}"</strong></p>
+            <p><strong>1. Poin Penting Materi</strong><br>
+            Tuliskan 3 hal kunci yang tim kalian pelajari tentang ${currentTopic}:</p>
+            <ol>
+                <li><div class="write-line"></div></li>
+                <li><div class="write-line"></div></li>
+                <li><div class="write-line"></div></li>
+            </ol>
+
+            <p style="margin-top: 15px;"><strong>2. Tantangan Kelompok</strong><br>
+            Selesaikan tantangan/soal berikut bersama tim:</p>
+            <div class="write-area" style="min-height: 100px; border: 2px solid black;">
+                (Guru dapat menuliskan soal kasus/kuis di sini sebelum digandakan)
+            </div>
+         `;
+
     default: // Generic / Direct Instruction
       return `
-            <p><strong>Langkah 1: Eksplorasi Konsep</strong><br>
-            Jawablah pertanyaan berikut berdasarkan materi yang telah dijelaskan:</p>
+            <p><strong>Aktivitas: Pendalaman Materi "${currentTopic}"</strong></p>
+            <p><strong>1. Eksplorasi Konsep</strong><br>
+            Jawablah pertanyaan berikut untuk mengecek pemahamanmu:</p>
             <ol>
-                <li>Apa yang dimaksud dengan topik pembelajaran hari ini?<br><div class="write-line"></div></li>
-                <li>Sebutkan 3 ciri utama/karakteristik penting!<br><div class="write-line"></div><div class="write-line"></div><div class="write-line"></div></li>
+                <li>Jelaskan pengertian ${currentTopic} dengan bahasamu sendiri!<br><div class="write-line"></div><div class="write-line"></div></li>
+                <li>Sebutkan contoh ${currentTopic} di lingkungan sekolah!<br><div class="write-line"></div><div class="write-line"></div></li>
             </ol>
             
-            <p style="margin-top: 15px;"><strong>Langkah 2: Latihan Terbimbing</strong><br>
-            Kerjakan soal latihan berikut:</p>
+            <p style="margin-top: 15px;"><strong>2. Latihan Analisis</strong><br>
+            Mengapa ${currentTopic} penting untuk dipelajari?</p>
             <div class="write-area"></div>
         `;
   }
 }
+. 
+ 
+ 
