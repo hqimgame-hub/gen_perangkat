@@ -173,10 +173,41 @@ form.addEventListener('submit', (e) => {
   };
 
   generateModul(data);
+  generateLKPD(data);
 });
 
+// Tab Navigation Logic
+const btnTabModul = document.getElementById('btnTabModul');
+const btnTabLKPD = document.getElementById('btnTabLKPD');
+const modulContentDiv = document.getElementById('modulContent');
+const lkpdContentDiv = document.getElementById('lkpdContent');
+const resultTitle = document.getElementById('resultTitle');
+
+function switchTab(tab) {
+  if (tab === 'modul') {
+    btnTabModul.classList.add('active');
+    btnTabLKPD.classList.remove('active');
+    modulContentDiv.style.display = 'block';
+    lkpdContentDiv.style.display = 'none';
+    modulContentDiv.classList.add('active');
+    lkpdContentDiv.classList.remove('active');
+  } else {
+    btnTabModul.classList.remove('active');
+    btnTabLKPD.classList.add('active');
+    modulContentDiv.style.display = 'none';
+    lkpdContentDiv.style.display = 'block';
+    modulContentDiv.classList.remove('active');
+    lkpdContentDiv.classList.add('active');
+  }
+}
+
+btnTabModul.addEventListener('click', () => switchTab('modul'));
+btnTabLKPD.addEventListener('click', () => switchTab('lkpd'));
+
 exportWordBtn.addEventListener('click', async () => {
-  const content = modulContent.innerHTML;
+  const isModulActive = btnTabModul.classList.contains('active');
+  const content = isModulActive ? modulContentDiv.innerHTML : lkpdContentDiv.innerHTML;
+  const fileName = isModulActive ? `Modul Ajar - ${resultTitle.innerText.split(': ')[1] || 'Export'}` : `LKPD - ${resultTitle.innerText.split(': ')[1] || 'Export'}`;
 
   // Wrap content with basic HTML structure for Word
   const htmlDoc = `
@@ -190,6 +221,10 @@ exportWordBtn.addEventListener('click', async () => {
         table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid black; padding: 8px; }
         .info-box { border: 1px solid #ddd; padding: 10px; margin-bottom: 20px; }
+        /* LKPD Specific Styles for Word */
+        .lkpd-header { text-align: center; border-bottom: 3px double black; margin-bottom: 20px; }
+        .lkpd-title { background: #eee; padding: 5px; border: 1px solid black; font-weight: bold; }
+        .write-area { border: 1px dashed #aaa; height: 100px; margin-top: 5px; }
       </style>
     </head>
     <body>
@@ -199,7 +234,7 @@ exportWordBtn.addEventListener('click', async () => {
   `;
 
   const blob = await asBlob(htmlDoc);
-  saveAs(blob, `${resultTitle.innerText.replace(/:/g, '-')}.docx`);
+  saveAs(blob, `${fileName}.docx`);
 });
 
 function generateModul(data) {
@@ -222,6 +257,144 @@ function generateModul(data) {
   const extras = generateExtras(data.topic);
 
   renderResult(data, tps, atp, steps, assessment, extras, rubric);
+}
+
+function generateLKPD(data) {
+  const lkpdHTML = renderLKPD(data);
+  lkpdContentDiv.innerHTML = lkpdHTML;
+}
+
+function renderLKPD(data) {
+  const modelActivities = getModelActivities(data.model);
+
+  return `
+    <div class="lkpd-container">
+      <div class="lkpd-header">
+        <h2>LEMBAR KERJA PESERTA DIDIK (LKPD)</h2>
+        <h3>${data.subject} - Kelas ${data.class}</h3>
+        <p>Materi: ${data.topic}</p>
+      </div>
+
+      <div class="lkpd-name-box">
+        <div>
+            <strong>Nama Kelompok:</strong> ............................................<br><br>
+            <strong>Anggota:</strong>
+            <ol style="margin-top: 5px; padding-left: 20px;">
+                <li>....................................</li>
+                <li>....................................</li>
+                <li>....................................</li>
+                <li>....................................</li>
+            </ol>
+        </div>
+        <div style="text-align: right;">
+            <strong>Hari/Tanggal:</strong> ....................................<br><br>
+            <strong>Nilai:</strong> ....................
+        </div>
+      </div>
+
+      <div class="lkpd-section">
+        <div class="lkpd-title">A. PETUNJUK BELAJAR</div>
+        <ol>
+            <li>Berdoalah sebelum memulai kegiatan belajar.</li>
+            <li>Bacalah materi dan panduan dengan seksama.</li>
+            <li>Diskusikan tugas ini bersama teman sekelompokmu.</li>
+            <li>Tanyakan pada guru jika mengalami kesulitan.</li>
+        </ol>
+      </div>
+
+      <div class="lkpd-section">
+        <div class="lkpd-title">B. KEGIATAN PEMBELAJARAN (${data.model})</div>
+        ${modelActivities}
+      </div>
+
+      <div class="lkpd-section">
+        <div class="lkpd-title">C. REFLEKSI & KESIMPULAN</div>
+        <p>Apa yang telah kalian pelajari hari ini? Tuliskan kesimpulanmu:</p>
+        <div class="write-area" style="height: 120px;"></div>
+      </div>
+      
+      <div class="lkpd-section" style="margin-top: 50px; text-align: right;">
+        <p>Mengetahui,<br>Guru Mata Pelajaran</p>
+        <br><br><br>
+        <p>( ............................................ )</p>
+      </div>
+    </div>
+  `;
+}
+
+function getModelActivities(model) {
+  switch (model) {
+    case 'Problem Based Learning':
+      return `
+            <p><strong>Langkah 1: Identifikasi Masalah</strong><br>
+            Amatilah kasus yang diberikan guru, kemudian tuliskan rumusan masalahnya:</p>
+            <div class="write-area"></div>
+            
+            <p style="margin-top: 15px;"><strong>Langkah 2: Penyelidikan</strong><br>
+            Carilah informasi dari berbagai sumber untuk menjawab masalah tersebut. Tuliskan temuanmu pada tabel di bawah:</p>
+            <table class="lkpd-table">
+                <tr><th>No</th><th>Sumber Informasi</th><th>Temuan Penting</th></tr>
+                <tr><td>1</td><td></td><td></td></tr>
+                <tr><td>2</td><td></td><td></td></tr>
+                <tr><td>3</td><td></td><td></td></tr>
+            </table>
+
+            <p style="margin-top: 15px;"><strong>Langkah 3: Solusi</strong><br>
+            Berdasarkan temuan di atas, solusi apa yang kalian tawarkan?</p>
+            <div class="write-area"></div>
+        `;
+
+    case 'Project Based Learning':
+      return `
+            <p><strong>Langkah 1: Perencanaan Proyek</strong><br>
+            Diskusikan rencana proyek yang akan kalian buat:</p>
+            <table class="lkpd-table">
+                <tr><td width="30%">Nama Proyek</td><td></td></tr>
+                <tr><td>Alat & Bahan</td><td></td></tr>
+                <tr><td>Estimasi Waktu</td><td></td></tr>
+            </table>
+
+            <p style="margin-top: 15px;"><strong>Langkah 2: Jadwal Kegiatan</strong></p>
+            <table class="lkpd-table">
+                <tr><th>Hari/Ke</th><th>Kegiatan</th><th>Penanggung Jawab</th></tr>
+                <tr><td>1</td><td>Desain & Perencanaan</td><td></td></tr>
+                <tr><td>2</td><td>Pembuatan/Pelaksanaan</td><td></td></tr>
+                <tr><td>3</td><td>Finishing & Uji Coba</td><td></td></tr>
+            </table>
+        `;
+
+    case 'Discovery Learning':
+      return `
+             <p><strong>Langkah 1: Stimulus & Identifikasi</strong><br>
+             Perhatikan gambar/video yang disajikan. Tuliskan hipotesis (dugaan sementara) kalian:</p>
+             <div class="write-area"></div>
+
+             <p style="margin-top: 15px;"><strong>Langkah 2: Pengumpulan Data</strong></p>
+             <table class="lkpd-table">
+                <tr><th>Variabel Pengamatan</th><th>Hasil Pengamatan</th></tr>
+                <tr><td>Objek A</td><td></td></tr>
+                <tr><td>Objek B</td><td></td></tr>
+             </table>
+
+             <p style="margin-top: 15px;"><strong>Langkah 3: Pembuktian</strong><br>
+             Apakah hipotesis awal kalian sesuai dengan data? Jelaskan!</p>
+             <div class="write-area"></div>
+        `;
+
+    default: // Generic / Direct Instruction
+      return `
+            <p><strong>Langkah 1: Eksplorasi Konsep</strong><br>
+            Jawablah pertanyaan berikut berdasarkan materi yang telah dijelaskan:</p>
+            <ol>
+                <li>Apa yang dimaksud dengan topik pembelajaran hari ini?<br><div class="write-line"></div></li>
+                <li>Sebutkan 3 ciri utama/karakteristik penting!<br><div class="write-line"></div><div class="write-line"></div><div class="write-line"></div></li>
+            </ol>
+            
+            <p style="margin-top: 15px;"><strong>Langkah 2: Latihan Terbimbing</strong><br>
+            Kerjakan soal latihan berikut:</p>
+            <div class="write-area"></div>
+        `;
+  }
 }
 
 function generateKKTP(tps) {

@@ -158,7 +158,124 @@ button:active {
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 2px solid var(--primary-light);
+  flex-wrap: wrap;
+  gap: 1rem;
 }
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--primary-light);
+  padding: 5px;
+  border-radius: 12px;
+}
+
+.tab-btn {
+  background: transparent;
+  color: var(--secondary);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 0;
+  /* Override generic button margin */
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: none;
+  box-shadow: none;
+}
+
+.tab-btn.active {
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.action-btn {
+  margin-top: 0;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  background: var(--primary);
+}
+
+.action-btn.secondary {
+  background: var(--success);
+}
+
+/* LKPD Styles */
+.lkpd-container {
+  font-family: 'Times New Roman', Times, serif;
+  color: black;
+}
+
+.lkpd-header {
+  text-align: center;
+  border-bottom: 3px double black;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+}
+
+.lkpd-name-box {
+  border: 1px solid black;
+  padding: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.lkpd-section {
+  margin-bottom: 25px;
+}
+
+.lkpd-title {
+  background: #eee;
+  padding: 5px 10px;
+  font-weight: bold;
+  border: 1px solid black;
+  margin-bottom: 10px;
+}
+
+.write-area {
+  border: 1px dashed #aaa;
+  min-height: 80px;
+  margin-top: 5px;
+  background: #fffcf0;
+  border-radius: 4px;
+}
+
+.write-line {
+  border-bottom: 1px dotted black;
+  height: 25px;
+  margin-top: 5px;
+}
+
+.lkpd-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.lkpd-table th,
+.lkpd-table td {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: left;
+}
+
+.lkpd-table th {
+  background: #f0f0f0;
+}
+
 
 .modul-content h2 {
   color: var(--primary);

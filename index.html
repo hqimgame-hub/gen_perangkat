@@ -113,18 +113,29 @@
 
       <div id="result" class="card">
         <div class="result-header">
-          <h2 id="resultTitle">Modul Ajar</h2>
-          <button id="exportWord" class="no-print"
-            style="background: var(--primary); padding: 0.6rem 1.2rem; font-size: 0.9rem;">
-            Ekspor ke Word (.docx)
-          </button>
-          <button onclick="window.print()" class="no-print"
-            style="background: var(--success); padding: 0.6rem 1.2rem; font-size: 0.9rem;">
-            Cetak PDF
-          </button>
+          <div class="tabs">
+            <button id="btnTabModul" class="tab-btn active">Modul Ajar</button>
+            <button id="btnTabLKPD" class="tab-btn">LKPD (Siswa)</button>
+          </div>
+          <div class="actions">
+            <button id="exportWord" class="no-print action-btn">
+              Ekspor Word
+            </button>
+            <button onclick="window.print()" class="no-print action-btn secondary">
+              Cetak PDF
+            </button>
+          </div>
         </div>
-        <div id="modulContent" class="modul-content">
-          <!-- Content will be generated here -->
+
+        <h2 id="resultTitle" style="display:none;">Modul Ajar</h2> <!-- Hidden but kept for title reference -->
+
+        <div id="modulContent" class="view-content active">
+          <!-- Modul Content -->
+        </div>
+
+        <div id="lkpdContent" class="view-content" style="display: none;">
+          <!-- LKPD Content will be generated here -->
+          <div class="lkpd-placeholder">Silakan generate modul terlebih dahulu.</div>
         </div>
       </div>
     </main>
