@@ -1153,6 +1153,3 @@ function getModelActivities(model, topicString, meetingNum, totalMeetings) {
         `;
   }
 }
-. 
- 
- 
