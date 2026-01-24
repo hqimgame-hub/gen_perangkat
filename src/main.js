@@ -837,69 +837,6 @@ function generateLKPD(data) {
 }
 
 function renderLKPD(data) {
-  const modelActivities = getModelActivities(data.model);
-
-  return `
-    <div class="lkpd-container">
-      <div class="lkpd-header">
-        <h2>LEMBAR KERJA PESERTA DIDIK (LKPD)</h2>
-        <h3>${data.subject} - Kelas ${data.class}</h3>
-        <p>Materi: ${data.topic}</p>
-      </div>
-
-      <div class="lkpd-name-box">
-        <div>
-            <strong>Nama Kelompok:</strong> ............................................<br><br>
-            <strong>Anggota:</strong>
-            <ol style="margin-top: 5px; padding-left: 20px;">
-                <li>....................................</li>
-                <li>....................................</li>
-                <li>....................................</li>
-                <li>....................................</li>
-            </ol>
-        </div>
-        <div style="text-align: right;">
-            <strong>Hari/Tanggal:</strong> ....................................<br><br>
-            <strong>Nilai:</strong> ....................
-        </div>
-      </div>
-
-      <div class="lkpd-section">
-        <div class="lkpd-title">A. PETUNJUK BELAJAR</div>
-        <ol>
-            <li>Berdoalah sebelum memulai kegiatan belajar.</li>
-            <li>Bacalah materi dan panduan dengan seksama.</li>
-            <li>Diskusikan tugas ini bersama teman sekelompokmu.</li>
-            <li>Tanyakan pada guru jika mengalami kesulitan.</li>
-        </ol>
-      </div>
-
-      <div class="lkpd-section">
-        <div class="lkpd-title">B. KEGIATAN PEMBELAJARAN (${data.model})</div>
-        ${modelActivities}
-      </div>
-
-      <div class="lkpd-section">
-        <div class="lkpd-title">C. REFLEKSI & KESIMPULAN</div>
-        <p>Apa yang telah kalian pelajari hari ini? Tuliskan kesimpulanmu:</p>
-        <div class="write-area" style="height: 120px;"></div>
-      </div>
-      
-      <div class="lkpd-section" style="margin-top: 50px; text-align: right;">
-        <p>Mengetahui,<br>Guru Mata Pelajaran</p>
-        <br><br><br>
-        <p>( ............................................ )</p>
-      </div>
-    </div>
-  `;
-}
-
-function generateLKPD(data) {
-  const lkpdHTML = renderLKPD(data);
-  lkpdContent.innerHTML = lkpdHTML;
-}
-
-function renderLKPD(data) {
   // Generate TPs again (since we didn't pass them, we regenerate for consistency or should have passed them)
   const tps = generateTP(data.cp, data.topic);
   const displayTPs = tps.slice(0, 3).map(tp => `<li>${tp}</li>`).join('');
