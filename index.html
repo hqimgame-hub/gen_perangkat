@@ -9,6 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 </head>
 
 <body>
@@ -116,6 +121,7 @@
           <div class="tabs">
             <button id="btnTabModul" class="tab-btn active">Modul Ajar</button>
             <button id="btnTabLKPD" class="tab-btn">LKPD (Siswa)</button>
+            <button id="btnTabSoal" class="tab-btn">Generator Soal</button>
           </div>
           <div class="actions">
             <button id="exportWord" class="no-print action-btn">
@@ -136,6 +142,116 @@
         <div id="lkpdContent" class="view-content" style="display: none;">
           <!-- LKPD Content will be generated here -->
           <div class="lkpd-placeholder">Silakan generate modul terlebih dahulu.</div>
+        </div>
+
+        <div id="soalTab" class="view-content" style="display: none;">
+          <div class="soal-config-panel no-print">
+            <h3 style="margin-top: 0; margin-bottom: 1rem;">Konfigurasi Soal</h3>
+            <form id="soalForm">
+              <div class="form-grid">
+                <div class="field">
+                  <label for="tipeSoal">Tipe Soal</label>
+                  <select id="tipeSoal" required>
+                    <option value="PG">Pilihan Ganda</option>
+                    <option value="PG_KOMPLEKS">Pilihan Ganda Kompleks</option>
+                    <option value="BENAR_SALAH">Benar/Salah</option>
+                    <option value="MENJODOHKAN">Menjodohkan</option>
+                    <option value="URAIAN">Uraian</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="jumlahSoal">Jumlah Soal</label>
+                  <select id="jumlahSoal" required>
+                    <option value="5">5 Soal</option>
+                    <option value="10" selected>10 Soal</option>
+                    <option value="15">15 Soal</option>
+                    <option value="20">20 Soal</option>
+                    <option value="custom">Tentukan Sendiri...</option>
+                  </select>
+                  <input type="number" id="customJumlah" placeholder="Masukkan jumlah"
+                    style="display: none; margin-top: 5px;" min="1" max="50">
+                </div>
+                <div class="field full-width">
+                  <label for="distribusiLevel">Distribusi Level Kognitif (Bloom)</label>
+                  <select id="distribusiLevel" required>
+                    <option value="seimbang" selected>Seimbang (30% Mudah, 40% Sedang, 30% Sulit)</option>
+                    <option value="lots">LOTS - Dasar (50% Mudah, 30% Sedang, 20% Sulit)</option>
+                    <option value="hots">HOTS - Lanjut (20% Mudah, 30% Sedang, 50% Sulit)</option>
+                    <option value="custom">Kustom Proporsi...</option>
+                  </select>
+                  <div id="customDistribusi"
+                    style="display: none; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div>
+                      <small>Mudah (%)</small>
+                      <input type="number" id="propMudah" value="30" min="0" max="100">
+                    </div>
+                    <div>
+                      <small>Sedang (%)</small>
+                      <input type="number" id="propSedang" value="40" min="0" max="100">
+                    </div>
+                    <div>
+                      <small>Sulit (%)</small>
+                      <input type="number" id="propSulit" value="30" min="0" max="100">
+                    </div>
+                  </div>
+                  <div id="distribusiError" style="color: red; font-size: 0.8rem; display: none; margin-top: 5px;">Total
+                    proporsi harus 100%</div>
+                </div>
+
+                <div class="field full-width"
+                  style="background: #fdf2f8; padding: 15px; border-radius: 8px; border: 1px solid #fbcfe8;">
+                  <h4 style="margin-top: 0; margin-bottom: 10px; color: #be185d;">✨ Integrasi AI (Gemini)</h4>
+                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 10px;">
+                    <input type="checkbox" id="useAI" style="width: 18px; height: 18px; margin: 0;">
+                    <b>Gunakan AI (Gemini) Asli</b> <small style="color: #666;">(Menghasilkan soal otentik, butuh API
+                      Key)</small>
+                  </label>
+                  <div id="apiKeySection" style="display: none;">
+                    <label for="geminiApiKey" style="font-size: 0.85rem; color: #831843;">Gemini API Key</label>
+                    <input type="password" id="geminiApiKey"
+                      placeholder="Paste API Key Anda di sini (Mulai dengan AIza...)"
+                      style="width: 100%; border-color: #fbcfe8; background: #fff;">
+                    <small style="display: block; margin-top: 5px; color: #666;"><a
+                        href="https://aistudio.google.com/app/apikey" target="_blank"
+                        style="color: #be185d; text-decoration: underline;">Dapatkan API Key Gratis di Google AI
+                        Studio</a></small>
+                  </div>
+                </div>
+
+                <div class="field full-width" style="display: flex; flex-direction: row; gap: 20px; flex-wrap: wrap;">
+                  <label
+                    style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: #fffcf0; padding: 10px; border-radius: 8px; border: 1px dashed #ccc;">
+                    <input type="checkbox" id="useImage" style="width: 18px; height: 18px; margin: 0;">
+                    Sertakan Placeholder Gambar
+                  </label>
+                  <label
+                    style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: #f0f7ff; padding: 10px; border-radius: 8px; border: 1px dashed #ccc;"
+                    id="labelEquation">
+                    <input type="checkbox" id="useEquation" style="width: 18px; height: 18px; margin: 0;">
+                    Sertakan Rumus/Equation (KaTeX)
+                  </label>
+                </div>
+              </div>
+              <button type="submit" id="btnGenerateSoal"
+                style="width: 100%; margin-top: 1.5rem; background: var(--accent); color: #000;">
+                <span>Generate Soal Sekarang</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </button>
+            </form>
+          </div>
+
+          <div id="soalContentOut" style="margin-top: 2rem;">
+            <div class="lkpd-placeholder">Silakan konfigurasi dan generate soal terlebih dahulu.</div>
+          </div>
+
+          <div id="kunciJawabanSection" class="no-print" style="margin-top: 2rem; display: none;">
+            <button id="btnToggleKunci" class="action-btn" style="width: 100%; margin-bottom: 1rem;">Tampilkan Kunci
+              Jawaban Lengkap</button>
+            <div id="kunciContent" style="display: none;"></div>
+          </div>
         </div>
       </div>
     </main>

@@ -6,10 +6,21 @@ const form = document.getElementById('modulForm');
 const resultDiv = document.getElementById('result');
 const modulContent = document.getElementById('modulContent');
 const lkpdContent = document.getElementById('lkpdContent');
+const soalTab = document.getElementById('soalTab');
+const soalContentOut = document.getElementById('soalContentOut');
+const kunciJawabanSection = document.getElementById('kunciJawabanSection');
+const kunciContent = document.getElementById('kunciContent');
+const btnToggleKunci = document.getElementById('btnToggleKunci');
+
 const resultTitle = document.getElementById('resultTitle');
 const exportWordBtn = document.getElementById('exportWord');
 const btnTabModul = document.getElementById('btnTabModul');
 const btnTabLKPD = document.getElementById('btnTabLKPD');
+const btnTabSoal = document.getElementById('btnTabSoal');
+
+const soalForm = document.getElementById('soalForm');
+const distribusiLevel = document.getElementById('distribusiLevel');
+const jumlahSoalSelect = document.getElementById('jumlahSoal');
 
 const KKO = {
   C1: ['Menyebutkan', 'Menjelaskan', 'Mengidentifikasi', 'Menunjukkan'],
@@ -181,30 +192,57 @@ form.addEventListener('submit', (e) => {
 
 // Tab Navigation Logic
 function switchTab(tab) {
+  btnTabModul.classList.remove('active');
+  btnTabLKPD.classList.remove('active');
+  btnTabSoal.classList.remove('active');
+
+  modulContent.style.display = 'none';
+  lkpdContent.style.display = 'none';
+  soalTab.style.display = 'none';
+
+  modulContent.classList.remove('active');
+  lkpdContent.classList.remove('active');
+  soalTab.classList.remove('active');
+
   if (tab === 'modul') {
     btnTabModul.classList.add('active');
-    btnTabLKPD.classList.remove('active');
     modulContent.style.display = 'block';
-    lkpdContent.style.display = 'none';
     modulContent.classList.add('active');
-    lkpdContent.classList.remove('active');
-  } else {
-    btnTabModul.classList.remove('active');
+  } else if (tab === 'lkpd') {
     btnTabLKPD.classList.add('active');
-    modulContent.style.display = 'none';
     lkpdContent.style.display = 'block';
-    modulContent.classList.remove('active');
     lkpdContent.classList.add('active');
+  } else if (tab === 'soal') {
+    btnTabSoal.classList.add('active');
+    soalTab.style.display = 'block';
+    soalTab.classList.add('active');
   }
 }
 
 btnTabModul.addEventListener('click', () => switchTab('modul'));
 btnTabLKPD.addEventListener('click', () => switchTab('lkpd'));
+btnTabSoal.addEventListener('click', () => switchTab('soal'));
 
 exportWordBtn.addEventListener('click', async () => {
-  const isModulActive = btnTabModul.classList.contains('active');
-  const content = isModulActive ? modulContent.innerHTML : lkpdContent.innerHTML;
-  const fileName = isModulActive ? `Modul Ajar - ${resultTitle.innerText.split(': ')[1] || 'Export'}` : `LKPD - ${resultTitle.innerText.split(': ')[1] || 'Export'}`;
+  const activeTab = document.querySelector('.tab-btn.active').id;
+  let content = '';
+  let fileName = '';
+
+  if (activeTab === 'btnTabModul') {
+    content = modulContent.innerHTML;
+    fileName = `Modul Ajar - ${resultTitle.innerText.split(': ')[1] || 'Export'}`;
+  } else if (activeTab === 'btnTabLKPD') {
+    content = lkpdContent.innerHTML;
+    fileName = `LKPD - ${resultTitle.innerText.split(': ')[1] || 'Export'}`;
+  } else if (activeTab === 'btnTabSoal') {
+    // Hide config and keys for clean export if desired, but we export as is
+    content = soalContentOut.innerHTML;
+    // For Word export, we include the answer key if it's currently generated
+    if (kunciJawabanSection.style.display !== 'none') {
+      content += `\n<div style="page-break-before: always;"></div>\n<h1>Kunci Jawaban & Rubrik</h1>\n${kunciContent.innerHTML}`;
+    }
+    fileName = `Bank Soal - ${resultTitle.innerText.split(': ')[1] || 'Export'}`;
+  }
 
   // Wrap content with basic HTML structure for Word
   const htmlDoc = `
@@ -230,9 +268,523 @@ exportWordBtn.addEventListener('click', async () => {
     </html>
   `;
 
-  const blob = await asBlob(htmlDoc);
+  // Fix KaTeX for Word (Word doesn't run JS, so we try to fallback to raw text if needed or keep HTML representation)
+  const cleanedHtml = htmlDoc.replace(/<span class="katex-mathml">.*?<\/span>/g, '') // remove mathml for clean render
+
+  const blob = await asBlob(cleanedHtml);
   saveAs(blob, `${fileName}.docx`);
 });
+
+// Generator Soal UI Logic
+const useAICheckbox = document.getElementById('useAI');
+const apiKeySection = document.getElementById('apiKeySection');
+const geminiApiKeyInput = document.getElementById('geminiApiKey');
+const btnGenerateSoal = document.getElementById('btnGenerateSoal');
+
+// Load API Key from local storage if exists
+if (localStorage.getItem('geminiApiKey')) {
+  geminiApiKeyInput.value = localStorage.getItem('geminiApiKey');
+}
+
+useAICheckbox.addEventListener('change', (e) => {
+  apiKeySection.style.display = e.target.checked ? 'block' : 'none';
+});
+
+distribusiLevel.addEventListener('change', (e) => {
+  document.getElementById('customDistribusi').style.display = e.target.value === 'custom' ? 'grid' : 'none';
+});
+
+jumlahSoalSelect.addEventListener('change', (e) => {
+  document.getElementById('customJumlah').style.display = e.target.value === 'custom' ? 'block' : 'none';
+});
+
+btnToggleKunci.addEventListener('click', () => {
+  const isHidden = kunciContent.style.display === 'none';
+  kunciContent.style.display = isHidden ? 'block' : 'none';
+  btnToggleKunci.innerText = isHidden ? 'Sembunyikan Kunci Jawaban' : 'Tampilkan Kunci Jawaban Lengkap';
+  if (isHidden) {
+    kunciContent.scrollIntoView({ behavior: 'smooth' });
+  }
+});
+
+soalForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  // Validasi proporsi
+  if (distribusiLevel.value === 'custom') {
+    const pM = parseInt(document.getElementById('propMudah').value) || 0;
+    const pSe = parseInt(document.getElementById('propSedang').value) || 0;
+    const pSu = parseInt(document.getElementById('propSulit').value) || 0;
+    if (pM + pSe + pSu !== 100) {
+      document.getElementById('distribusiError').style.display = 'block';
+      return;
+    }
+    document.getElementById('distribusiError').style.display = 'none';
+  }
+
+  // Ambil Data Modul Existing (untuk konteks)
+  const dataModulStr = localStorage.getItem('modulData');
+  const dataModul = dataModulStr ? JSON.parse(dataModulStr) : null;
+
+  if (!dataModul || !dataModul.topic || !dataModul.cp) {
+    alert("Silakan lengkapi dan Generate Modul Ajar terlebih dahulu agar generator soal memiliki konteks materi dan CP yang relevan.");
+    return;
+  }
+
+  const soalConfig = {
+    tipe: document.getElementById('tipeSoal').value,
+    jumlah: jumlahSoalSelect.value === 'custom' ? parseInt(document.getElementById('customJumlah').value) : parseInt(jumlahSoalSelect.value),
+    distribusi: distribusiLevel.value,
+    customProp: {
+      mudah: parseInt(document.getElementById('propMudah').value) || 0,
+      sedang: parseInt(document.getElementById('propSedang').value) || 0,
+      sulit: parseInt(document.getElementById('propSulit').value) || 0
+    },
+    useImage: document.getElementById('useImage').checked,
+    useEquation: document.getElementById('useEquation').checked,
+    useAI: useAICheckbox.checked,
+    apiKey: geminiApiKeyInput.value,
+    topic: dataModul.topic,
+    subject: dataModul.subject,
+    cp: dataModul.cp,
+    jenjang: dataModul.jenjang,
+    fase: dataModul.fase,
+    kelas: dataModul.class,
+    tps: generateTP(dataModul.cp, dataModul.topic) // Dapatkan TP dari existing context
+  };
+
+  if (soalConfig.useAI) {
+    if (!soalConfig.apiKey) {
+      alert("Harap masukkan Gemini API Key Anda untuk menggunakan fitur AI Asli.");
+      return;
+    }
+    localStorage.setItem('geminiApiKey', soalConfig.apiKey); // Save it for future
+    generateSoalWithAI(soalConfig);
+  } else {
+    generateSoal(soalConfig);
+  }
+});
+
+// --- GENERATOR SOAL LOGIC (AI GEMINI) ---
+async function generateSoalWithAI(config) {
+  // Parsing prompt config
+  const prompt = `Anda adalah seorang ahli pembuat soal evaluasi pendidikan untuk siswa di Indonesia.
+Buat soal evaluasi berdasarkan data berikut:
+- Mata Pelajaran: ${config.subject}
+- Jenjang/Fase/Kelas: ${config.jenjang} / Fase ${config.fase} / Kelas ${config.kelas}
+- Topik Materi: ${config.topic}
+- Capaian Pembelajaran (CP): ${config.cp}
+- Indikator Tersedia (TP): ${config.tps.join('; ')}
+
+Spesifikasi Soal yang Harus Dibuat:
+- Tipe Soal: ${config.tipe} (PG = Pilihan Ganda A-E, PG_KOMPLEKS = Pilih 2 benar dari 5 opsi A-E, BENAR_SALAH = Pernyataan dengan Opsi Benar/Salah, MENJODOHKAN = Lajur Kiri & Kanan, URAIAN = Soal esai HOTS/Medium dengan rubrik skor 1-4)
+- Jumlah Soal Total: ${config.jumlah}
+- Distribusi Kognitif/Level: ${config.distribusi.toUpperCase()} (Mudah, Sedang, Sulit) dimana HOTS = penalaran tingkat tinggi. Distribusikan ke ${config.jumlah} soal dengan tepat.
+- Bahasa: Indonesia baku, ejaan EYD yang baik dan mendidik.
+
+Kriteria Khusus:
+1. Soal harus merepresentasikan indikator pelajaran.
+2. Panjang soal harus memadai untuk masing-masing level kognitif. Soal Sulit (HOTS) wajib menyajikan kasus/narasi observasi pendahuluan yang jelas sebelum pertanyaannya.
+3. OUTPUT HARUS FULL JSON (tanpa tag markdown \`\`\`json \`\`\`, cukup text murni valid JSON). Format JSON sebagai berikut:
+
+[
+  {
+    "no": 1,
+    "tipe": "${config.tipe}",
+    "tp": "<ambil salah satu Indikator (TP) yang paling relevan>",
+    "level": "<Mudah / Sedang / Sulit>",
+    "teksSoal": "<Teks panjang dari soal pertanyaan. Jika KaTeX diperlukan, gunakan format $$rumus$$ (display) atau \\\\(rumus\\\\) (inline)>",
+    "opsi": ["<opsi A jika PG>", "<opsi B>", "<opsi C>", "<opsi D>", "<opsi E>"], // ISI HANYA JIKA TIPE PG/PG_KOMPLEKS
+    "kunci": "<Kunci jawaban: string (huruf A jika PG, kata Benar/Salah) atau array of string jika PG Kompleks (['A','C']) atau Menjodohkan (['1-B','2-C'])>",
+    "pembahasan": "<Teks pembahasan rasional kunci jawaban singkat>",
+    "kiri": ["<Pernyataan Kiri 1>", "<Kiri 2>", "<Kiri 3>", "<Kiri 4>"], // KHUSUS MENJODOHKAN
+    "kanan": ["A. <Kanan A>", "B. <Kanan B>", "C. <Kanan C>", "D. <Kanan D>", "E. Pengecoh"], // KHUSUS MENJODOHKAN
+    "rubrik": { // KHUSUS URAIAN
+      "skor4": "<Kriteria skor sempurna>",
+      "skor3": "<Kriteria skor 3>",
+      "skor2": "<Kriteria skor 2>",
+      "skor1": "<Kriteria minimal>"
+    }
+  },
+  ... lanjutkan persis sampai soal ke-${config.jumlah} ...
+]`;
+
+  soalContentOut.innerHTML = `
+    <div style="text-align:center; padding: 40px; color: #be185d;">
+      <svg class="spinner" viewBox="0 0 50 50" style="width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px auto;">
+        <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="1, 200" style="animation: dash 1.5s ease-in-out infinite;" />
+      </svg>
+      <h3 style="margin: 0;">AI Sedang Menyusun Soal...</h3>
+      <p style="color: #666; font-size: 0.9rem;">Gemini sedang menyusun indikator, menganalisis materi, dan menyiapkan soal berstandar tinggi (${config.jumlah} pertanyaan). Mohon tunggu beberapa detik.</p>
+    </div>
+    <style>
+      @keyframes spin { 100% { transform: rotate(360deg); } }
+      @keyframes dash { 0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; } 50% { stroke-dasharray: 89, 200; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 89, 200; stroke-dashoffset: -124px; } }
+    </style>
+  `;
+  kunciJawabanSection.style.display = 'none';
+  btnGenerateSoal.disabled = true;
+  btnGenerateSoal.innerHTML = 'Memproses...';
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || 'Gagal memanggil API Gemini. Periksa API Key Anda.');
+    }
+
+    const jsonRes = await response.json();
+    let textOut = jsonRes.candidates[0].content.parts[0].text;
+
+    // Clean markdown json tags if AI ignores instruction
+    textOut = textOut.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
+
+    try {
+      const gSoalData = JSON.parse(textOut);
+
+      // Inject placeholder and process KatTex spacing for every soal obj
+      gSoalData.forEach((s, idx) => {
+        // Re-assign default values if missing
+        if (!s.opsi) s.opsi = [];
+        if (!s.kunci) s.kunci = "";
+        if (s.tipe === 'URAIAN' && !s.rubrik) s.rubrik = { skor4: "Sangat baik", skor3: "Baik", skor2: "Cukup", skor1: "Kurang" };
+        if (s.tipe === 'MENJODOHKAN') {
+          if (!s.kiri) s.kiri = ['Pertanyaan'];
+          if (!s.kanan) s.kanan = ['Jawaban'];
+        }
+
+        // Apply post-processing visual modifier (images layer, KaTeX re-mapper)
+        let modTeks = s.teksSoal;
+        modTeks += getPlaceholderImage(config.useImage, idx + 1);
+        s.teksSoal = modTeks;
+      });
+
+      renderSoal(gSoalData, config);
+
+    } catch (errParse) {
+      console.error("AI Output:", textOut);
+      throw new Error("AI memberikan respons yang tidak berformat JSON valid. Silakan coba tekan Generate lagi.");
+    }
+
+  } catch (err) {
+    soalContentOut.innerHTML = `<div style="color: red; padding: 20px; background: #fee2e2; border-radius: 8px;"><b>Error:</b> ${err.message}</div>`;
+  } finally {
+    btnGenerateSoal.disabled = false;
+    btnGenerateSoal.innerHTML = `<span>Generate Soal Sekarang</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
+  }
+}
+
+// --- GENERATOR SOAL LOGIC (STATIS - FALLBACK) ---
+
+function isScienceMath(subject) {
+  const s = subject.toLowerCase();
+  return s.includes('matematika') || s.includes('fisika') || s.includes('kimia') || s.includes('ipa');
+}
+
+function processKaTeX(text, subject, enableEquation) {
+  if (!enableEquation || !isScienceMath(subject)) return text;
+
+  // Randomly inject equation pattern if it's a science subject context
+  const s = subject.toLowerCase();
+  let eq = '';
+  if (s.includes('matematika')) {
+    const eqs = ['f(x) = ax^2 + bx + c', '\\int_{a}^{b} x^2 dx', '\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}', '\\log_{a} x = y \\iff a^y = x'];
+    eq = eqs[Math.floor(Math.random() * eqs.length)];
+  } else if (s.includes('fisika')) {
+    const eqs = ['E = mc^2', 'F = G \\frac{m_1 m_2}{r^2}', 'V = I \\cdot R', '\\Delta Q = m \\cdot c \\cdot \\Delta T'];
+    eq = eqs[Math.floor(Math.random() * eqs.length)];
+  } else if (s.includes('kimia')) {
+    const eqs = ['\\text{CH}_4 + 2\\text{O}_2 \\rightarrow \\text{CO}_2 + 2\\text{H}_2\\text{O}', 'pH = -\\log[H^+]', 'PV = nRT'];
+    eq = eqs[Math.floor(Math.random() * eqs.length)];
+  } else {
+    const eqs = ['x = \\frac{y}{z}', 'A = \\pi r^2'];
+    eq = eqs[Math.floor(Math.random() * eqs.length)];
+  }
+
+  if (eq && Math.random() > 0.5) { // 50% chance to insert equation into question
+    return text + `<div class="katex-display">\\[${eq}\\]</div>`;
+  }
+  return text;
+}
+
+function getPlaceholderImage(useImage, index) {
+  if (!useImage || Math.random() > 0.4) return ''; // 40% chance to have image
+  return `<div class="gambar-placeholder"> [TEMPELKAN GAMBAR/GRAFIK UNTUK SOAL NO. ${index} DI SINI] </div>`;
+}
+
+function generateSoal(config) {
+  let listSoal = [];
+
+  // Calculate distribution
+  let pMudah = 0, pSedang = 0, pSulit = 0;
+  if (config.distribusi === 'seimbang') { pMudah = 30; pSedang = 40; pSulit = 30; }
+  else if (config.distribusi === 'lots') { pMudah = 50; pSedang = 30; pSulit = 20; }
+  else if (config.distribusi === 'hots') { pMudah = 20; pSedang = 30; pSulit = 50; }
+  else {
+    pMudah = config.customProp.mudah;
+    pSedang = config.customProp.sedang;
+    pSulit = config.customProp.sulit;
+  }
+
+  const cMudah = Math.round((pMudah / 100) * config.jumlah);
+  const cSedang = Math.round((pSedang / 100) * config.jumlah);
+  // Sulit takes the remainder to ensure exact total
+  const cSulit = config.jumlah - (cMudah + cSedang);
+
+  const levels = [
+    ...Array(cMudah).fill('Mudah'),
+    ...Array(cSedang).fill('Sedang'),
+    ...Array(cSulit).fill('Sulit')
+  ];
+
+  // Randomize array
+  levels.sort(() => Math.random() - 0.5);
+
+  for (let i = 0; i < config.jumlah; i++) {
+    const level = levels[i];
+    const tp = config.tps[i % config.tps.length];
+
+    let soalObj = null;
+    if (config.tipe === 'PG') soalObj = generateSoalPG(i + 1, tp, config.topic, level, config);
+    else if (config.tipe === 'PG_KOMPLEKS') soalObj = generateSoalPGKompleks(i + 1, tp, config.topic, level, config);
+    else if (config.tipe === 'BENAR_SALAH') soalObj = generateSoalBenarSalah(i + 1, tp, config.topic, level, config);
+    else if (config.tipe === 'MENJODOHKAN') soalObj = generateSoalMenjodohkan(i + 1, tp, config.topic, config);
+    else if (config.tipe === 'URAIAN') soalObj = generateSoalUraian(i + 1, tp, config.topic, level, config);
+
+    listSoal.push(soalObj);
+  }
+
+  renderSoal(listSoal, config);
+}
+
+// ---------------- SOAL GENERATORS ---------------- 
+
+const PENGHANTAR = [
+  "Berdasarkan konsep yang telah dipelajari,",
+  "Perhatikan pernyataan berikut dengan seksama.",
+  "Dalam konteks kehidupan sehari-hari,",
+  "Sebuah fenomena menunjukkan bahwa",
+  "Ilmuwan menemukan bahwa"
+];
+
+function getRandomPenghantar() {
+  return Math.random() > 0.5 ? PENGHANTAR[Math.floor(Math.random() * PENGHANTAR.length)] + " " : "";
+}
+
+function processTeksSoal(baseText, config, index) {
+  let t = getRandomPenghantar() + baseText;
+  t += getPlaceholderImage(config.useImage, index);
+  t = processKaTeX(t, config.subject, config.useEquation);
+  return t;
+}
+
+function generateSoalPG(no, tp, topic, level, config) {
+  let pertanyaan = "";
+  if (level === 'Mudah') {
+    pertanyaan = `Apa pengertian utama dari konsep ${topic.split('\n')[0].trim()}?`;
+  } else if (level === 'Sedang') {
+    pertanyaan = `Manakah yang merupakan fungsi utama atau penerapan dari ${topic.split('\n')[0].trim()}?`;
+  } else {
+    pertanyaan = `Jika terjadi gangguan pada proses ${topic.split('\n')[0].trim()}, apa dampak paling signifikan yang akan terjadi?`;
+  }
+
+  pertanyaan = processTeksSoal(pertanyaan, config, no);
+
+  const opsiTemplate = ['Pilihan A', 'Pilihan B', 'Pilihan C', 'Pilihan D', 'Pilihan E'];
+  const jwbIndex = Math.floor(Math.random() * 5); // 0-4
+
+  return {
+    no, tipe: 'PG', tp, level,
+    teksSoal: pertanyaan,
+    opsi: opsiTemplate,
+    kunci: String.fromCharCode(65 + jwbIndex) // A, B, C, D, E
+  };
+}
+
+function generateSoalPGKompleks(no, tp, topic, level, config) {
+  let pertanyaan = `Pilihlah DUA pernyataan yang benar mengenai karakteristik ${topic.split('\n')[0].trim()}!`;
+  pertanyaan = processTeksSoal(pertanyaan, config, no);
+
+  return {
+    no, tipe: 'PG_KOMPLEKS', tp, level,
+    teksSoal: pertanyaan,
+    opsi: ['Pernyataan 1', 'Pernyataan 2', 'Pernyataan 3', 'Pernyataan 4', 'Pernyataan 5'],
+    kunci: ['A', 'C'] // Dummy keys
+  };
+}
+
+function generateSoalBenarSalah(no, tp, topic, level, config) {
+  let pernyataan = `Pernyataan: Konsep ${topic.split('\n')[0].trim()} tidak memiliki pengaruh apa-apa terhadap lingkungan sekitar.`;
+  pernyataan = processTeksSoal(pernyataan, config, no);
+
+  return {
+    no, tipe: 'BENAR_SALAH', tp, level,
+    teksSoal: pernyataan,
+    kunci: 'Salah',
+    pembahasan: 'Konsep tersebut sangat berpengaruh pada keseimbangan sistem terkait.'
+  };
+}
+
+function generateSoalMenjodohkan(no, tp, topic, config) {
+  let pertanyaan = `Pasangkanlah pernyataan di lajur kiri dengan jawaban yang tepat di lajur kanan terkait ${topic.split('\n')[0].trim()}!`;
+  pertanyaan = processTeksSoal(pertanyaan, config, no);
+
+  return {
+    no, tipe: 'MENJODOHKAN', tp, level: 'Sedang',
+    teksSoal: pertanyaan,
+    kiri: ['Pernyataan 1', 'Pernyataan 2', 'Pernyataan 3', 'Pernyataan 4'],
+    kanan: ['A. Jawaban X', 'B. Jawaban Y', 'C. Jawaban Z', 'D. Jawaban W', 'E. Pengecoh'],
+    kunci: ['1-B', '2-C', '3-A', '4-D']
+  };
+}
+
+function generateSoalUraian(no, tp, topic, level, config) {
+  let pertanyaan = "";
+  if (level === 'Mudah') {
+    pertanyaan = `Sebutkan dan jelaskan secara ringkas 3 komponen dari ${topic.split('\n')[0].trim()}!`;
+  } else if (level === 'Sedang') {
+    pertanyaan = `Bandingkan dua hal yang berkaitan dengan ${topic.split('\n')[0].trim()}, lalu berikan contoh penerapannya!`;
+  } else {
+    pertanyaan = `Rancanglah sebuah solusi inovatif untuk mengatasi masalah yang melibatkan ${topic.split('\n')[0].trim()}! Berikan alasan yang logis (HOTS).`;
+  }
+
+  pertanyaan = processTeksSoal(pertanyaan, config, no);
+
+  return {
+    no, tipe: 'URAIAN', tp, level,
+    teksSoal: pertanyaan,
+    rubrik: {
+      skor4: 'Menjawab sangat lengkap, logis, sesuai konteks, dan memberikan contoh yang relevan.',
+      skor3: 'Menjawab cukup lengkap, sesuai konteks, namun contoh kurang relevan.',
+      skor2: 'Menjawab sebagian kecil pertanyaan namun belum tepat sasaran.',
+      skor1: 'Menjawab dengan pemahaman yang kurang tepat / melenceng jauh.'
+    }
+  };
+}
+
+// ---------------- RENDER UI ---------------- 
+
+function renderSoal(listSoal, config) {
+  let htmlSoal = `<div class="info-box" style="margin-bottom:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
+    <strong>Topik:</strong> ${config.topic.replace(/\n/g, ', ')} <br>
+    <strong>Tipe Soal:</strong> ${config.tipe} | <strong>Jumlah:</strong> ${config.jumlah} | <strong>Level:</strong> ${config.distribusi.toUpperCase()}
+  </div>
+  <div class="soal-container">`;
+
+  let htmlKunci = `<table class="kunci-table">
+    <tr><th>No</th><th>Indikator (TP)</th><th>Level</th><th>Kunci Jawaban</th></tr>`;
+
+  listSoal.forEach(s => {
+    // Determine level badge class
+    const bClass = s.level === 'Mudah' ? 'badge-mudah' : (s.level === 'Sedang' ? 'badge-sedang' : 'badge-sulit');
+
+    htmlSoal += `<div class="soal-item">
+      <div class="soal-header">
+        <div class="soal-nomor">SOAL NO. ${s.no}</div>
+        <div class="badge-group">
+          <span class="badge badge-tp" title="${s.tp}">TP: ${s.tp.substring(0, 30)}...</span>
+          <span class="badge ${bClass}">${s.level}</span>
+        </div>
+      </div>
+      <div class="soal-teks">${s.teksSoal}</div>`;
+
+    if (s.tipe === 'PG' || s.tipe === 'PG_KOMPLEKS') {
+      htmlSoal += `<ul class="opsi-list">`;
+      s.opsi.forEach((op, idx) => {
+        const hrf = String.fromCharCode(65 + idx);
+        // PG Kompleks checkboxes, PG radio
+        const inputType = s.tipe === 'PG' ? 'radio' : 'checkbox';
+        htmlSoal += `<li class="opsi-item">
+          <input type="${inputType}" name="soal_${s.no}" style="margin-right: 12px; transform: scale(1.2);">
+          <span class="opsi-huruf">${hrf}.</span>
+          <span class="opsi-teks">${op} (Distraktor representatif)</span>
+        </li>`;
+      });
+      htmlSoal += `</ul>`;
+    }
+    else if (s.tipe === 'BENAR_SALAH') {
+      htmlSoal += `
+        <div style="display:flex; gap:20px; margin-top:20px;">
+          <label style="display:flex; align-items:center; gap:8px;"><input type="radio" name="soal_${s.no}"> <strong>BENAR</strong></label>
+          <label style="display:flex; align-items:center; gap:8px;"><input type="radio" name="soal_${s.no}"> <strong>SALAH</strong></label>
+        </div>`;
+    }
+    else if (s.tipe === 'MENJODOHKAN') {
+      htmlSoal += `<div class="menjodohkan-container">
+        <div class="menjodohkan-col">
+          <h4>Pernyataan</h4>
+          <ul class="menjodohkan-list">
+            ${s.kiri.map((k, i) => `<li><span class="num">${i + 1}.</span><span class="val">${k}</span></li>`).join('')}
+          </ul>
+        </div>
+        <div class="menjodohkan-col">
+          <h4>Pilihan Jawaban</h4>
+          <ul class="menjodohkan-list">
+            ${s.kanan.map(k => `<li><span class="val">${k}</span></li>`).join('')}
+          </ul>
+        </div>
+      </div>`;
+    }
+    else if (s.tipe === 'URAIAN') {
+      htmlSoal += `<div class="write-area" style="height: 120px; border: 1px dashed #aaa; margin-top: 15px; background: #fafafa;"></div>`;
+    }
+
+    htmlSoal += `</div>`;
+
+    // Build Kunci
+    let kStr = '';
+    if (s.tipe === 'PG') kStr = `<strong>${s.kunci}</strong>`;
+    else if (s.tipe === 'PG_KOMPLEKS') kStr = `<strong>${s.kunci.join(', ')}</strong>`;
+    else if (s.tipe === 'BENAR_SALAH') kStr = `<strong>${s.kunci}</strong> <br><small style="color:#666;">(${s.pembahasan})</small>`;
+    else if (s.tipe === 'MENJODOHKAN') kStr = `<strong>${s.kunci.join(' | ')}</strong>`;
+    else if (s.tipe === 'URAIAN') kStr = `
+      <table class="rubrik-uraian-table">
+        <tr><th>Skor 4</th><th>Skor 3</th><th>Skor 2</th><th>Skor 1</th></tr>
+        <tr><td>${s.rubrik.skor4}</td><td>${s.rubrik.skor3}</td><td>${s.rubrik.skor2}</td><td>${s.rubrik.skor1}</td></tr>
+      </table>`;
+
+    htmlKunci += `<tr>
+      <td style="text-align:center;">${s.no}</td>
+      <td><small>${s.tp}</small></td>
+      <td><span class="badge ${bClass}">${s.level}</span></td>
+      <td>${kStr}</td>
+    </tr>`;
+  });
+
+  htmlSoal += `</div>`;
+  htmlKunci += `</table>`;
+
+  soalContentOut.innerHTML = htmlSoal;
+  kunciContent.innerHTML = htmlKunci;
+
+  resultDiv.style.display = 'block';
+  kunciJawabanSection.style.display = 'block';
+
+  // Render KaTeX if window.renderMathInElement exists
+  if (window.renderMathInElement) {
+    window.renderMathInElement(soalContentOut, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '$', right: '$', display: false },
+        { left: '\\(', right: '\\)', display: false }
+      ]
+    });
+  }
+
+  soalContentOut.scrollIntoView({ behavior: 'smooth' });
+}
 
 function generateModul(data) {
   // 1. Generate Tujuan Pembelajaran (Professional & Multi-Topic)

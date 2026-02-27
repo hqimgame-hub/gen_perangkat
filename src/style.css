@@ -430,6 +430,218 @@ button:active {
   }
 }
 
+/* Generator Soal Styles */
+.soal-container {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  color: var(--text-main);
+}
+
+.soal-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  break-inside: avoid;
+}
+
+.soal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.soal-nomor {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--primary);
+}
+
+.badge-group {
+  display: flex;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-tp {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-mudah {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-sedang {
+  background: #fef08a;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.badge-sulit {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.soal-teks {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.opsi-list {
+  list-style: none;
+  padding: 0;
+}
+
+.opsi-item {
+  display: flex;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.opsi-item:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.opsi-huruf {
+  font-weight: bold;
+  margin-right: 10px;
+  color: var(--secondary);
+}
+
+.opsi-teks {
+  flex: 1;
+}
+
+.gambar-placeholder {
+  width: 100%;
+  max-width: 400px;
+  height: 200px;
+  background: #f1f5f9;
+  border: 2px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  color: #64748b;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  margin: 15px 0;
+}
+
+.kunci-table-container {
+  overflow-x: auto;
+}
+
+.kunci-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 0.95rem;
+}
+
+.kunci-table th,
+.kunci-table td {
+  border: 1px solid var(--border);
+  padding: 12px;
+  text-align: left;
+}
+
+.kunci-table th {
+  background: var(--primary);
+  color: white;
+}
+
+.kunci-table tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.rubrik-uraian-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+
+.rubrik-uraian-table th,
+.rubrik-uraian-table td {
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  text-align: center;
+}
+
+.rubrik-uraian-table th {
+  background: #f1f5f9;
+}
+
+/* Match layout container */
+.menjodohkan-container {
+  display: flex;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.menjodohkan-col {
+  flex: 1;
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.menjodohkan-col h4 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--secondary);
+}
+
+.menjodohkan-list {
+  list-style: none;
+  padding: 0;
+}
+
+.menjodohkan-list li {
+  margin-bottom: 12px;
+  display: flex;
+}
+
+.menjodohkan-list li>span.num {
+  font-weight: bold;
+  width: 25px;
+  flex-shrink: 0;
+}
+
+.menjodohkan-list li>span.val {
+  flex: 1;
+}
+
+/* KaTeX custom spacing */
+.katex-display {
+  margin: 1em 0;
+}
+
 /* Print Styles */
 @media print {
   .no-print {
