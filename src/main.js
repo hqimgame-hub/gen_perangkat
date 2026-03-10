@@ -167,10 +167,9 @@ formFields.forEach(field => {
 
 window.addEventListener('load', loadFormData);
 
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-
-  const data = {
+// Helper: baca data form
+function getFormData() {
+  return {
     jenjang: document.getElementById('jenjang').value,
     category: document.getElementById('category').value,
     fase: document.getElementById('fase').value,
@@ -184,10 +183,47 @@ form.addEventListener('submit', (e) => {
     model: document.getElementById('model').value,
     isDifferentiated: document.getElementById('isDifferentiated').checked
   };
+}
 
+function validateFormData(data) {
+  if (!data.jenjang || !data.topic || !data.cp || !data.subject) {
+    alert('Harap lengkapi data form: Jenjang, Mata Pelajaran, Topik, dan Capaian Pembelajaran wajib diisi.');
+    return false;
+  }
+  return true;
+}
+
+document.getElementById('btnGenerateModul').addEventListener('click', () => {
+  const data = getFormData();
+  if (!validateFormData(data)) return;
+  saveFormData();
   generateModul(data);
-  generateLKPD(data);
+  resultDiv.style.display = 'block';
+  switchTab('modul');
+  resultDiv.scrollIntoView({ behavior: 'smooth' });
 });
+
+document.getElementById('btnGenerateLKPD').addEventListener('click', () => {
+  const data = getFormData();
+  if (!validateFormData(data)) return;
+  saveFormData();
+  generateLKPD(data);
+  resultDiv.style.display = 'block';
+  switchTab('lkpd');
+  resultDiv.scrollIntoView({ behavior: 'smooth' });
+});
+
+document.getElementById('btnGenerateSoalMain').addEventListener('click', () => {
+  const data = getFormData();
+  if (!validateFormData(data)) return;
+  saveFormData();
+  // Pastikan data modul tersimpan untuk digunakan oleh generator soal
+  resultDiv.style.display = 'block';
+  switchTab('soal');
+  resultDiv.scrollIntoView({ behavior: 'smooth' });
+});
+
+
 
 // Tab Navigation Logic
 function switchTab(tab) {
