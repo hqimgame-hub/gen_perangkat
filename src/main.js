@@ -314,11 +314,15 @@ exportWordBtn.addEventListener('click', async () => {
 const useAICheckbox = document.getElementById('useAI');
 const apiKeySection = document.getElementById('apiKeySection');
 const geminiApiKeyInput = document.getElementById('geminiApiKey');
+const geminiModelSelect = document.getElementById('geminiModel');
 const btnGenerateSoal = document.getElementById('btnGenerateSoal');
 
 // Load API Key from local storage if exists
 if (localStorage.getItem('geminiApiKey')) {
   geminiApiKeyInput.value = localStorage.getItem('geminiApiKey');
+}
+if (localStorage.getItem('geminiModel')) {
+  geminiModelSelect.value = localStorage.getItem('geminiModel');
 }
 
 const btnCheckApiKey = document.getElementById('btnCheckApiKey');
@@ -338,8 +342,9 @@ if (btnCheckApiKey) {
       return;
     }
     localStorage.setItem('geminiApiKey', key);
+    localStorage.setItem('geminiModel', geminiModelSelect.value);
     apiKeyStatus.style.color = '#16a34a'; // green
-    apiKeyStatus.innerText = '✅ API Key berhasil disimpan untuk perangkat ini!';
+    apiKeyStatus.innerText = '✅ API Key & Model berhasil disimpan untuk perangkat ini!';
     setTimeout(() => { apiKeyStatus.innerText = ''; }, 4000);
   });
 }
@@ -443,6 +448,7 @@ soalForm.addEventListener('submit', (e) => {
     useEquation: document.getElementById('useEquation').checked,
     useAI: useAICheckbox.checked,
     apiKey: geminiApiKeyInput.value,
+    modelName: geminiModelSelect.value || 'gemini-1.5-flash',
     topic: dataModul.topic,
     subject: dataModul.subject,
     cp: dataModul.cp,
@@ -458,6 +464,7 @@ soalForm.addEventListener('submit', (e) => {
       return;
     }
     localStorage.setItem('geminiApiKey', soalConfig.apiKey);
+    localStorage.setItem('geminiModel', soalConfig.modelName);
     generateSoalWithAI(soalConfig);
   } else {
     generateSoal(soalConfig);
@@ -529,7 +536,7 @@ Kriteria Khusus:
   btnGenerateSoal.innerHTML = 'Memproses...';
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.modelName}:generateContent?key=${config.apiKey}`;
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
