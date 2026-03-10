@@ -149,27 +149,67 @@
             <h3 style="margin-top: 0; margin-bottom: 1rem;">Konfigurasi Soal</h3>
             <form id="soalForm">
               <div class="form-grid">
-                <div class="field">
-                  <label for="tipeSoal">Tipe Soal</label>
-                  <select id="tipeSoal" required>
-                    <option value="PG">Pilihan Ganda</option>
-                    <option value="PG_KOMPLEKS">Pilihan Ganda Kompleks</option>
-                    <option value="BENAR_SALAH">Benar/Salah</option>
-                    <option value="MENJODOHKAN">Menjodohkan</option>
-                    <option value="URAIAN">Uraian</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="jumlahSoal">Jumlah Soal</label>
-                  <select id="jumlahSoal" required>
-                    <option value="5">5 Soal</option>
-                    <option value="10" selected>10 Soal</option>
-                    <option value="15">15 Soal</option>
-                    <option value="20">20 Soal</option>
-                    <option value="custom">Tentukan Sendiri...</option>
-                  </select>
-                  <input type="number" id="customJumlah" placeholder="Masukkan jumlah"
-                    style="display: none; margin-top: 5px;" min="1" max="50">
+                <div class="field full-width">
+                  <label>Tipe &amp; Jumlah Soal</label>
+                  <div id="tipeJumlahGrid">
+                    <div class="tipe-row" data-tipe="PG">
+                      <label class="tipe-label">
+                        <input type="checkbox" class="tipe-check" value="PG" checked>
+                        <span>Pilihan Ganda (PG)</span>
+                      </label>
+                      <div class="tipe-jumlah-wrap">
+                        <input type="number" class="tipe-jumlah" data-tipe="PG" value="5" min="1" max="50">
+                        <small>soal</small>
+                      </div>
+                    </div>
+                    <div class="tipe-row" data-tipe="PG_KOMPLEKS">
+                      <label class="tipe-label">
+                        <input type="checkbox" class="tipe-check" value="PG_KOMPLEKS">
+                        <span>PG Kompleks</span>
+                      </label>
+                      <div class="tipe-jumlah-wrap">
+                        <input type="number" class="tipe-jumlah" data-tipe="PG_KOMPLEKS" value="5" min="1" max="50"
+                          disabled>
+                        <small>soal</small>
+                      </div>
+                    </div>
+                    <div class="tipe-row" data-tipe="BENAR_SALAH">
+                      <label class="tipe-label">
+                        <input type="checkbox" class="tipe-check" value="BENAR_SALAH">
+                        <span>Benar / Salah</span>
+                      </label>
+                      <div class="tipe-jumlah-wrap">
+                        <input type="number" class="tipe-jumlah" data-tipe="BENAR_SALAH" value="5" min="1" max="50"
+                          disabled>
+                        <small>soal</small>
+                      </div>
+                    </div>
+                    <div class="tipe-row" data-tipe="MENJODOHKAN">
+                      <label class="tipe-label">
+                        <input type="checkbox" class="tipe-check" value="MENJODOHKAN">
+                        <span>Menjodohkan</span>
+                      </label>
+                      <div class="tipe-jumlah-wrap">
+                        <input type="number" class="tipe-jumlah" data-tipe="MENJODOHKAN" value="5" min="1" max="50"
+                          disabled>
+                        <small>soal</small>
+                      </div>
+                    </div>
+                    <div class="tipe-row" data-tipe="URAIAN">
+                      <label class="tipe-label">
+                        <input type="checkbox" class="tipe-check" value="URAIAN">
+                        <span>Uraian</span>
+                      </label>
+                      <div class="tipe-jumlah-wrap">
+                        <input type="number" class="tipe-jumlah" data-tipe="URAIAN" value="5" min="1" max="50" disabled>
+                        <small>soal</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="totalSoalInfo" style="margin-top: 10px; font-size: 0.85rem; color: var(--secondary);">Total:
+                    <b id="totalSoalCount">5</b> soal</div>
+                  <div id="tipeSoalError" style="color: red; font-size: 0.8rem; display: none; margin-top: 5px;">Pilih
+                    minimal 1 tipe soal!</div>
                 </div>
                 <div class="field full-width">
                   <label for="distribusiLevel">Distribusi Level Kognitif (Bloom)</label>

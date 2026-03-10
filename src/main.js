@@ -20,7 +20,6 @@ const btnTabSoal = document.getElementById('btnTabSoal');
 
 const soalForm = document.getElementById('soalForm');
 const distribusiLevel = document.getElementById('distribusiLevel');
-const jumlahSoalSelect = document.getElementById('jumlahSoal');
 
 const KKO = {
   C1: ['Menyebutkan', 'Menjelaskan', 'Mengidentifikasi', 'Menunjukkan'],
@@ -294,9 +293,34 @@ distribusiLevel.addEventListener('change', (e) => {
   document.getElementById('customDistribusi').style.display = e.target.value === 'custom' ? 'grid' : 'none';
 });
 
-jumlahSoalSelect.addEventListener('change', (e) => {
-  document.getElementById('customJumlah').style.display = e.target.value === 'custom' ? 'block' : 'none';
+// Multi-tipe checkbox + total counter
+function updateTipeUI() {
+  let total = 0;
+  document.querySelectorAll('.tipe-check').forEach(cb => {
+    const row = cb.closest('.tipe-row');
+    const jumlahInput = row.querySelector('.tipe-jumlah');
+    if (cb.checked) {
+      jumlahInput.disabled = false;
+      row.classList.add('active');
+      total += parseInt(jumlahInput.value) || 0;
+    } else {
+      jumlahInput.disabled = true;
+      row.classList.remove('active');
+    }
+  });
+  document.getElementById('totalSoalCount').textContent = total;
+}
+
+document.querySelectorAll('.tipe-check').forEach(cb => {
+  cb.addEventListener('change', updateTipeUI);
 });
+
+document.querySelectorAll('.tipe-jumlah').forEach(inp => {
+  inp.addEventListener('input', updateTipeUI);
+});
+
+// Init
+updateTipeUI();
 
 btnToggleKunci.addEventListener('click', () => {
   const isHidden = kunciContent.style.display === 'none';
@@ -331,9 +355,25 @@ soalForm.addEventListener('submit', (e) => {
     return;
   }
 
+  // Baca konfigurasi multi-tipe soal
+  const selectedTipes = [];
+  document.querySelectorAll('.tipe-check:checked').forEach(cb => {
+    const row = cb.closest('.tipe-row');
+    const jumlah = parseInt(row.querySelector('.tipe-jumlah').value) || 0;
+    if (jumlah > 0) selectedTipes.push({ tipe: cb.value, jumlah });
+  });
+
+  if (selectedTipes.length === 0) {
+    document.getElementById('tipeSoalError').style.display = 'block';
+    return;
+  }
+  document.getElementById('tipeSoalError').style.display = 'none';
+
+  const totalSoal = selectedTipes.reduce((s, t) => s + t.jumlah, 0);
+
   const soalConfig = {
-    tipe: document.getElementById('tipeSoal').value,
-    jumlah: jumlahSoalSelect.value === 'custom' ? parseInt(document.getElementById('customJumlah').value) : parseInt(jumlahSoalSelect.value),
+    tipes: selectedTipes,               // array [{tipe, jumlah}]
+    jumlah: totalSoal,
     distribusi: distribusiLevel.value,
     customProp: {
       mudah: parseInt(document.getElementById('propMudah').value) || 0,
@@ -350,7 +390,7 @@ soalForm.addEventListener('submit', (e) => {
     jenjang: dataModul.jenjang,
     fase: dataModul.fase,
     kelas: dataModul.class,
-    tps: generateTP(dataModul.cp, dataModul.topic) // Dapatkan TP dari existing context
+    tps: generateTP(dataModul.cp, dataModul.topic)
   };
 
   if (soalConfig.useAI) {
@@ -358,7 +398,7 @@ soalForm.addEventListener('submit', (e) => {
       alert("Harap masukkan Gemini API Key Anda untuk menggunakan fitur AI Asli.");
       return;
     }
-    localStorage.setItem('geminiApiKey', soalConfig.apiKey); // Save it for future
+    localStorage.setItem('geminiApiKey', soalConfig.apiKey);
     generateSoalWithAI(soalConfig);
   } else {
     generateSoal(soalConfig);
@@ -377,49 +417,52 @@ Buat soal evaluasi berdasarkan data berikut:
 - Indikator Tersedia (TP): ${config.tps.join('; ')}
 
 Spesifikasi Soal yang Harus Dibuat:
-- Tipe Soal: ${config.tipe} (PG = Pilihan Ganda A-E, PG_KOMPLEKS = Pilih 2 benar dari 5 opsi A-E, BENAR_SALAH = Pernyataan dengan Opsi Benar/Salah, MENJODOHKAN = Lajur Kiri & Kanan, URAIAN = Soal esai HOTS/Medium dengan rubrik skor 1-4)
-- Jumlah Soal Total: ${config.jumlah}
-- Distribusi Kognitif/Level: ${config.distribusi.toUpperCase()} (Mudah, Sedang, Sulit) dimana HOTS = penalaran tingkat tinggi. Distribusikan ke ${config.jumlah} soal dengan tepat.
-- Bahasa: Indonesia baku, ejaan EYD yang baik dan mendidik.
+- Rincian Tipe & Jumlah: ${config.tipes.map(t => `${t.jumlah} soal tipe ${t.tipe}`).join(', ')}
+- TOTAL soal keseluruhan: ${config.jumlah} soal (hasilkan persis sejumlah ini, dengan nomor berurutan 1 s.d. ${config.jumlah})
+- Urutan tipe soal: buat soal berurutan sesuai rincian di atas (misal: 5 PG dulu nomor 1-5, lalu 3 URAIAN nomor 6-8, dst.)
+- Distribusi Kognitif/Level: ${config.distribusi.toUpperCase()} (Mudah, Sedang, Sulit) — terapkan distribusi ini MASING-MASING per tipe secara proporsional.
+- Bahasa: Indonesia baku, ejaan EYD.
+
+Kode tipe soal:
+- PG = Pilihan Ganda 5 opsi (A-E), isi field "opsi" dengan 5 teks jawaban nyata dan "kunci" dengan huruf (A/B/C/D/E)
+- PG_KOMPLEKS = Pilih 2 jawaban benar dari 5 opsi (A-E), "kunci" berupa array 2 huruf misal ["A","C"]
+- BENAR_SALAH = Pernyataan, "kunci" berupa string "Benar" atau "Salah"
+- MENJODOHKAN = "kiri" berisi 4 pernyataan, "kanan" berisi 5 pilihan (A. xxx s.d. E. Pengecoh), "kunci" berupa array pasangan misal ["1-B","2-C","3-A","4-D"]
+- URAIAN = Soal esai satu pertanyaan + "rubrik" dengan sub-key skor4/skor3/skor2/skor1
 
 Kriteria Khusus:
-1. Soal harus merepresentasikan indikator pelajaran.
-2. Panjang soal harus memadai untuk masing-masing level kognitif. Soal Sulit (HOTS) wajib menyajikan kasus/narasi observasi pendahuluan yang jelas sebelum pertanyaannya.
-3. OUTPUT HARUS FULL JSON (tanpa tag markdown \`\`\`json \`\`\`, cukup text murni valid JSON). Format JSON sebagai berikut:
+1. Soal harus mengacu pada salah satu Indikator (TP) yang tersedia.
+2. Soal Sulit (HOTS) wajib diawali narasi/wacana kontekstual sebelum pertanyaan inti.
+3. OUTPUT HARUS FULL JSON murni (tanpa tag markdown ```json, langsung array).Format tiap elemen:
 
-[
-  {
-    "no": 1,
-    "tipe": "${config.tipe}",
-    "tp": "<ambil salah satu Indikator (TP) yang paling relevan>",
-    "level": "<Mudah / Sedang / Sulit>",
-    "teksSoal": "<Teks panjang dari soal pertanyaan. Jika KaTeX diperlukan, gunakan format $$rumus$$ (display) atau \\\\(rumus\\\\) (inline)>",
-    "opsi": ["<opsi A jika PG>", "<opsi B>", "<opsi C>", "<opsi D>", "<opsi E>"], // ISI HANYA JIKA TIPE PG/PG_KOMPLEKS
-    "kunci": "<Kunci jawaban: string (huruf A jika PG, kata Benar/Salah) atau array of string jika PG Kompleks (['A','C']) atau Menjodohkan (['1-B','2-C'])>",
-    "pembahasan": "<Teks pembahasan rasional kunci jawaban singkat>",
-    "kiri": ["<Pernyataan Kiri 1>", "<Kiri 2>", "<Kiri 3>", "<Kiri 4>"], // KHUSUS MENJODOHKAN
-    "kanan": ["A. <Kanan A>", "B. <Kanan B>", "C. <Kanan C>", "D. <Kanan D>", "E. Pengecoh"], // KHUSUS MENJODOHKAN
-    "rubrik": { // KHUSUS URAIAN
-      "skor4": "<Kriteria skor sempurna>",
-      "skor3": "<Kriteria skor 3>",
-      "skor2": "<Kriteria skor 2>",
-      "skor1": "<Kriteria minimal>"
-    }
-  },
-  ... lanjutkan persis sampai soal ke-${config.jumlah} ...
+      [
+        {
+          "no": 1,
+          "tipe": "<kode tipe soal>",
+          "tp": "<ambil TP paling relevan>",
+          "level": "<Mudah / Sedang / Sulit>",
+          "teksSoal": "<teks soal lengkap>",
+          "opsi": ["<A>", "<B>", "<C>", "<D>", "<E>"],
+          "kunci": "<sesuai tipe>",
+          "pembahasan": "<singkat dan jelas>",
+          "kiri": ["<kiri 1>", "<kiri 2>", "<kiri 3>", "<kiri 4>"],
+          "kanan": ["A. <x>", "B. <y>", "C. <z>", "D. <w>", "E. Pengecoh"],
+          "rubrik": { "skor4": "", "skor3": "", "skor2": "", "skor1": "" }
+        },
+        ...lanjutkan sampai soal ke-${ config.jumlah } ...
 ]`;
 
   soalContentOut.innerHTML = `
-    <div style="text-align:center; padding: 40px; color: #be185d;">
+    < div style = "text-align:center; padding: 40px; color: #be185d;" >
       <svg class="spinner" viewBox="0 0 50 50" style="width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px auto;">
         <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="1, 200" style="animation: dash 1.5s ease-in-out infinite;" />
       </svg>
       <h3 style="margin: 0;">AI Sedang Menyusun Soal...</h3>
       <p style="color: #666; font-size: 0.9rem;">Gemini sedang menyusun indikator, menganalisis materi, dan menyiapkan soal berstandar tinggi (${config.jumlah} pertanyaan). Mohon tunggu beberapa detik.</p>
-    </div>
+    </div >
     <style>
-      @keyframes spin { 100% { transform: rotate(360deg); } }
-      @keyframes dash { 0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; } 50% { stroke-dasharray: 89, 200; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 89, 200; stroke-dashoffset: -124px; } }
+      @keyframes spin {100 % { transform: rotate(360deg); }}
+      @keyframes dash {0 % { stroke- dasharray: 1, 200; stroke-dashoffset: 0; } 50% {stroke - dasharray: 89, 200; stroke-dashoffset: -35px; } 100% {stroke - dasharray: 89, 200; stroke-dashoffset: -124px; } }
     </style>
   `;
   kunciJawabanSection.style.display = 'none';
@@ -428,61 +471,61 @@ Kriteria Khusus:
 
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.7,
-        }
-      })
-    });
+  method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.7,
+    }
+  })
+});
 
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || 'Gagal memanggil API Gemini. Periksa API Key Anda.');
+if (!response.ok) {
+  const err = await response.json();
+  throw new Error(err.error?.message || 'Gagal memanggil API Gemini. Periksa API Key Anda.');
+}
+
+const jsonRes = await response.json();
+let textOut = jsonRes.candidates[0].content.parts[0].text;
+
+// Clean markdown json tags if AI ignores instruction
+textOut = textOut.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
+
+try {
+  const gSoalData = JSON.parse(textOut);
+
+  // Inject placeholder and process KatTex spacing for every soal obj
+  gSoalData.forEach((s, idx) => {
+    // Re-assign default values if missing
+    if (!s.opsi) s.opsi = [];
+    if (!s.kunci) s.kunci = "";
+    if (s.tipe === 'URAIAN' && !s.rubrik) s.rubrik = { skor4: "Sangat baik", skor3: "Baik", skor2: "Cukup", skor1: "Kurang" };
+    if (s.tipe === 'MENJODOHKAN') {
+      if (!s.kiri) s.kiri = ['Pertanyaan'];
+      if (!s.kanan) s.kanan = ['Jawaban'];
     }
 
-    const jsonRes = await response.json();
-    let textOut = jsonRes.candidates[0].content.parts[0].text;
+    // Apply post-processing visual modifier (images layer, KaTeX re-mapper)
+    let modTeks = s.teksSoal;
+    modTeks += getPlaceholderImage(config.useImage, idx + 1);
+    s.teksSoal = modTeks;
+  });
 
-    // Clean markdown json tags if AI ignores instruction
-    textOut = textOut.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
+  renderSoal(gSoalData, config);
 
-    try {
-      const gSoalData = JSON.parse(textOut);
-
-      // Inject placeholder and process KatTex spacing for every soal obj
-      gSoalData.forEach((s, idx) => {
-        // Re-assign default values if missing
-        if (!s.opsi) s.opsi = [];
-        if (!s.kunci) s.kunci = "";
-        if (s.tipe === 'URAIAN' && !s.rubrik) s.rubrik = { skor4: "Sangat baik", skor3: "Baik", skor2: "Cukup", skor1: "Kurang" };
-        if (s.tipe === 'MENJODOHKAN') {
-          if (!s.kiri) s.kiri = ['Pertanyaan'];
-          if (!s.kanan) s.kanan = ['Jawaban'];
-        }
-
-        // Apply post-processing visual modifier (images layer, KaTeX re-mapper)
-        let modTeks = s.teksSoal;
-        modTeks += getPlaceholderImage(config.useImage, idx + 1);
-        s.teksSoal = modTeks;
-      });
-
-      renderSoal(gSoalData, config);
-
-    } catch (errParse) {
-      console.error("AI Output:", textOut);
-      throw new Error("AI memberikan respons yang tidak berformat JSON valid. Silakan coba tekan Generate lagi.");
-    }
+} catch (errParse) {
+  console.error("AI Output:", textOut);
+  throw new Error("AI memberikan respons yang tidak berformat JSON valid. Silakan coba tekan Generate lagi.");
+}
 
   } catch (err) {
-    soalContentOut.innerHTML = `<div style="color: red; padding: 20px; background: #fee2e2; border-radius: 8px;"><b>Error:</b> ${err.message}</div>`;
-  } finally {
-    btnGenerateSoal.disabled = false;
-    btnGenerateSoal.innerHTML = `<span>Generate Soal Sekarang</span>
+  soalContentOut.innerHTML = `<div style="color: red; padding: 20px; background: #fee2e2; border-radius: 8px;"><b>Error:</b> ${err.message}</div>`;
+} finally {
+  btnGenerateSoal.disabled = false;
+  btnGenerateSoal.innerHTML = `<span>Generate Soal Sekarang</span>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
-  }
+}
 }
 
 // --- GENERATOR SOAL LOGIC (STATIS - FALLBACK) ---
@@ -526,44 +569,47 @@ function getPlaceholderImage(useImage, index) {
 function generateSoal(config) {
   let listSoal = [];
 
-  // Calculate distribution
-  let pMudah = 0, pSedang = 0, pSulit = 0;
-  if (config.distribusi === 'seimbang') { pMudah = 30; pSedang = 40; pSulit = 30; }
-  else if (config.distribusi === 'lots') { pMudah = 50; pSedang = 30; pSulit = 20; }
-  else if (config.distribusi === 'hots') { pMudah = 20; pSedang = 30; pSulit = 50; }
-  else {
-    pMudah = config.customProp.mudah;
-    pSedang = config.customProp.sedang;
-    pSulit = config.customProp.sulit;
+  // Helper: buat distribusi level untuk sejumlah soal
+  function makeLevelArray(jumlah) {
+    let pMudah = 30, pSedang = 40, pSulit = 30;
+    if (config.distribusi === 'lots') { pMudah = 50; pSedang = 30; pSulit = 20; }
+    else if (config.distribusi === 'hots') { pMudah = 20; pSedang = 30; pSulit = 50; }
+    else if (config.distribusi === 'custom') {
+      pMudah = config.customProp.mudah;
+      pSedang = config.customProp.sedang;
+      pSulit = config.customProp.sulit;
+    }
+    const cMudah = Math.round((pMudah / 100) * jumlah);
+    const cSedang = Math.round((pSedang / 100) * jumlah);
+    const cSulit = jumlah - (cMudah + cSedang);
+    const arr = [
+      ...Array(cMudah).fill('Mudah'),
+      ...Array(cSedang).fill('Sedang'),
+      ...Array(cSulit < 0 ? 0 : cSulit).fill('Sulit')
+    ];
+    arr.sort(() => Math.random() - 0.5);
+    return arr;
   }
 
-  const cMudah = Math.round((pMudah / 100) * config.jumlah);
-  const cSedang = Math.round((pSedang / 100) * config.jumlah);
-  // Sulit takes the remainder to ensure exact total
-  const cSulit = config.jumlah - (cMudah + cSedang);
+  let noGlobal = 1; // nomor soal berlanjut lintas tipe
 
-  const levels = [
-    ...Array(cMudah).fill('Mudah'),
-    ...Array(cSedang).fill('Sedang'),
-    ...Array(cSulit).fill('Sulit')
-  ];
+  config.tipes.forEach(({ tipe, jumlah }) => {
+    const levels = makeLevelArray(jumlah);
+    for (let i = 0; i < jumlah; i++) {
+      const level = levels[i];
+      const tp = config.tps[noGlobal % config.tps.length];
 
-  // Randomize array
-  levels.sort(() => Math.random() - 0.5);
+      let soalObj = null;
+      if (tipe === 'PG') soalObj = generateSoalPG(noGlobal, tp, config.topic, level, config);
+      else if (tipe === 'PG_KOMPLEKS') soalObj = generateSoalPGKompleks(noGlobal, tp, config.topic, level, config);
+      else if (tipe === 'BENAR_SALAH') soalObj = generateSoalBenarSalah(noGlobal, tp, config.topic, level, config);
+      else if (tipe === 'MENJODOHKAN') soalObj = generateSoalMenjodohkan(noGlobal, tp, config.topic, config);
+      else if (tipe === 'URAIAN') soalObj = generateSoalUraian(noGlobal, tp, config.topic, level, config);
 
-  for (let i = 0; i < config.jumlah; i++) {
-    const level = levels[i];
-    const tp = config.tps[i % config.tps.length];
-
-    let soalObj = null;
-    if (config.tipe === 'PG') soalObj = generateSoalPG(i + 1, tp, config.topic, level, config);
-    else if (config.tipe === 'PG_KOMPLEKS') soalObj = generateSoalPGKompleks(i + 1, tp, config.topic, level, config);
-    else if (config.tipe === 'BENAR_SALAH') soalObj = generateSoalBenarSalah(i + 1, tp, config.topic, level, config);
-    else if (config.tipe === 'MENJODOHKAN') soalObj = generateSoalMenjodohkan(i + 1, tp, config.topic, config);
-    else if (config.tipe === 'URAIAN') soalObj = generateSoalUraian(i + 1, tp, config.topic, level, config);
-
-    listSoal.push(soalObj);
-  }
+      listSoal.push(soalObj);
+      noGlobal++;
+    }
+  });
 
   renderSoal(listSoal, config);
 }
