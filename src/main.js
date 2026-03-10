@@ -590,37 +590,69 @@ function processTeksSoal(baseText, config, index) {
 }
 
 function generateSoalPG(no, tp, topic, level, config) {
+  const topikUtama = topic.split('\n')[0].trim();
   let pertanyaan = "";
+  let opsi = [];
+  let jwbIndex = 0;
+
   if (level === 'Mudah') {
-    pertanyaan = `Apa pengertian utama dari konsep ${topic.split('\n')[0].trim()}?`;
+    pertanyaan = `Apa pengertian utama dari konsep ${topikUtama}?`;
+    opsi = [
+      `Proses atau karakteristik inti dari ${topikUtama} yang menjadikannya unik`,
+      `Kumpulan unsur yang tidak berhubungan dengan ${topikUtama} sama sekali`,
+      `Mekanisme respons dari sistem luar terhadap ${topikUtama}`,
+      `Definisi alternatif yang berlawanan dengan konsep ${topikUtama}`,
+      `Pernyataan yang bersifat netral dan tidak menjelaskan ${topikUtama}`
+    ];
+    jwbIndex = 0; // opsi A adalah yang benar
   } else if (level === 'Sedang') {
-    pertanyaan = `Manakah yang merupakan fungsi utama atau penerapan dari ${topic.split('\n')[0].trim()}?`;
-  } else {
-    pertanyaan = `Jika terjadi gangguan pada proses ${topic.split('\n')[0].trim()}, apa dampak paling signifikan yang akan terjadi?`;
+    pertanyaan = `Manakah penerapan yang TEPAT dari konsep ${topikUtama} dalam kehidupan nyata?`;
+    opsi = [
+      `Menerapkan prinsip ${topikUtama} untuk memecahkan permasalahan yang relevan di lingkungan`,
+      `Mengabaikan ${topikUtama} dan menggatikannya dengan konsep yang tidak berkaitan`,
+      `Menerapkan ${topikUtama} hanya pada kondisi yang terisolasi dari konteks aslinya`,
+      `Membalikkan prinsip kerja ${topikUtama} sehingga menghasilkan hasil yang berlawanan`,
+      `Menggunakan konsep dari bidang lain yang tidak memiliki keterkaitan dengan ${topikUtama}`
+    ];
+    jwbIndex = 0; // opsi A adalah yang benar
+  } else { // Sulit / HOTS
+    pertanyaan = `Jika terjadi gangguan kritis pada proses ${topikUtama}, evaluasi dampak paling signifikan yang akan terjadi!`;
+    opsi = [
+      `Memburuknya keseimbangan keseluruhan sistem yang bergantung pada ${topikUtama}`,
+      `Sistem beradaptasi secara sempurna tanpa ada perubahan yang berarti`,
+      `Proses ${topikUtama} tergantikan oleh mekanisme lain secara otomatis dan instan`,
+      `Dampak hanya terjadi secara lokal dan terisolasi pada komponen terkecil saja`,
+      `Tidak ada dampak apapun karena ${topikUtama} bersifat independen dari sistem`
+    ];
+    jwbIndex = 0; // opsi A adalah yang benar
   }
 
   pertanyaan = processTeksSoal(pertanyaan, config, no);
 
-  const opsiTemplate = ['Pilihan A', 'Pilihan B', 'Pilihan C', 'Pilihan D', 'Pilihan E'];
-  const jwbIndex = Math.floor(Math.random() * 5); // 0-4
-
   return {
     no, tipe: 'PG', tp, level,
     teksSoal: pertanyaan,
-    opsi: opsiTemplate,
-    kunci: String.fromCharCode(65 + jwbIndex) // A, B, C, D, E
+    opsi: opsi,
+    kunci: String.fromCharCode(65 + jwbIndex) // A
   };
 }
 
 function generateSoalPGKompleks(no, tp, topic, level, config) {
-  let pertanyaan = `Pilihlah DUA pernyataan yang benar mengenai karakteristik ${topic.split('\n')[0].trim()}!`;
+  const topikUtama = topic.split('\n')[0].trim();
+  let pertanyaan = `Pilihlah DUA pernyataan yang BENAR mengenai ${topikUtama}!`;
   pertanyaan = processTeksSoal(pertanyaan, config, no);
 
   return {
     no, tipe: 'PG_KOMPLEKS', tp, level,
     teksSoal: pertanyaan,
-    opsi: ['Pernyataan 1', 'Pernyataan 2', 'Pernyataan 3', 'Pernyataan 4', 'Pernyataan 5'],
-    kunci: ['A', 'C'] // Dummy keys
+    opsi: [
+      `${topikUtama} memiliki peran penting dalam menjaga keseimbangan sistem terkait`,
+      `${topikUtama} tidak dipengaruhi oleh faktor eksternal manapun`,
+      `${topikUtama} dapat diobservasi melalui perubahan yang dapat diukur secara ilmiah`,
+      `${topikUtama} hanya berlaku pada kondisi laboratorium dan tidak ditemukan di alam`,
+      `Gangguan pada ${topikUtama} tidak menimbulkan konsekuensi apapun pada organisme/sistem`
+    ],
+    kunci: ['A', 'C'] // Opsi A dan C yang benar
   };
 }
 
