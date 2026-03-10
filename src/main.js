@@ -822,7 +822,7 @@ function renderSoal(listSoal, config) {
         htmlSoal += `<li class="opsi-item">
           <input type="${inputType}" name="soal_${s.no}" style="margin-right: 12px; transform: scale(1.2);">
           <span class="opsi-huruf">${hrf}.</span>
-          <span class="opsi-teks">${op} (Distraktor representatif)</span>
+          <span class="opsi-teks">${op}</span>
         </li>`;
       });
       htmlSoal += `</ul>`;
