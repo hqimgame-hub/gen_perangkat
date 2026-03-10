@@ -433,7 +433,7 @@ Kode tipe soal:
 Kriteria Khusus:
 1. Soal harus mengacu pada salah satu Indikator (TP) yang tersedia.
 2. Soal Sulit (HOTS) wajib diawali narasi/wacana kontekstual sebelum pertanyaan inti.
-3. OUTPUT HARUS FULL JSON murni (tanpa tag markdown ```json, langsung array).Format tiap elemen:
+3. OUTPUT HARUS FULL JSON murni (tanpa tag markdown, langsung array JSON valid tanpa teks tambahan apapun di luar array). Format tiap elemen:
 
       [
         {
@@ -449,7 +449,7 @@ Kriteria Khusus:
           "kanan": ["A. <x>", "B. <y>", "C. <z>", "D. <w>", "E. Pengecoh"],
           "rubrik": { "skor4": "", "skor3": "", "skor2": "", "skor1": "" }
         },
-        ...lanjutkan sampai soal ke-${ config.jumlah } ...
+        ...lanjutkan sampai soal ke-${config.jumlah} ...
 ]`;
 
   soalContentOut.innerHTML = `
@@ -471,61 +471,61 @@ Kriteria Khusus:
 
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.apiKey}`, {
-  method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.7,
-    }
-  })
-});
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+        }
+      })
+    });
 
-if (!response.ok) {
-  const err = await response.json();
-  throw new Error(err.error?.message || 'Gagal memanggil API Gemini. Periksa API Key Anda.');
-}
-
-const jsonRes = await response.json();
-let textOut = jsonRes.candidates[0].content.parts[0].text;
-
-// Clean markdown json tags if AI ignores instruction
-textOut = textOut.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
-
-try {
-  const gSoalData = JSON.parse(textOut);
-
-  // Inject placeholder and process KatTex spacing for every soal obj
-  gSoalData.forEach((s, idx) => {
-    // Re-assign default values if missing
-    if (!s.opsi) s.opsi = [];
-    if (!s.kunci) s.kunci = "";
-    if (s.tipe === 'URAIAN' && !s.rubrik) s.rubrik = { skor4: "Sangat baik", skor3: "Baik", skor2: "Cukup", skor1: "Kurang" };
-    if (s.tipe === 'MENJODOHKAN') {
-      if (!s.kiri) s.kiri = ['Pertanyaan'];
-      if (!s.kanan) s.kanan = ['Jawaban'];
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || 'Gagal memanggil API Gemini. Periksa API Key Anda.');
     }
 
-    // Apply post-processing visual modifier (images layer, KaTeX re-mapper)
-    let modTeks = s.teksSoal;
-    modTeks += getPlaceholderImage(config.useImage, idx + 1);
-    s.teksSoal = modTeks;
-  });
+    const jsonRes = await response.json();
+    let textOut = jsonRes.candidates[0].content.parts[0].text;
 
-  renderSoal(gSoalData, config);
+    // Clean markdown json tags if AI ignores instruction
+    textOut = textOut.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
 
-} catch (errParse) {
-  console.error("AI Output:", textOut);
-  throw new Error("AI memberikan respons yang tidak berformat JSON valid. Silakan coba tekan Generate lagi.");
-}
+    try {
+      const gSoalData = JSON.parse(textOut);
+
+      // Inject placeholder and process KatTex spacing for every soal obj
+      gSoalData.forEach((s, idx) => {
+        // Re-assign default values if missing
+        if (!s.opsi) s.opsi = [];
+        if (!s.kunci) s.kunci = "";
+        if (s.tipe === 'URAIAN' && !s.rubrik) s.rubrik = { skor4: "Sangat baik", skor3: "Baik", skor2: "Cukup", skor1: "Kurang" };
+        if (s.tipe === 'MENJODOHKAN') {
+          if (!s.kiri) s.kiri = ['Pertanyaan'];
+          if (!s.kanan) s.kanan = ['Jawaban'];
+        }
+
+        // Apply post-processing visual modifier (images layer, KaTeX re-mapper)
+        let modTeks = s.teksSoal;
+        modTeks += getPlaceholderImage(config.useImage, idx + 1);
+        s.teksSoal = modTeks;
+      });
+
+      renderSoal(gSoalData, config);
+
+    } catch (errParse) {
+      console.error("AI Output:", textOut);
+      throw new Error("AI memberikan respons yang tidak berformat JSON valid. Silakan coba tekan Generate lagi.");
+    }
 
   } catch (err) {
-  soalContentOut.innerHTML = `<div style="color: red; padding: 20px; background: #fee2e2; border-radius: 8px;"><b>Error:</b> ${err.message}</div>`;
-} finally {
-  btnGenerateSoal.disabled = false;
-  btnGenerateSoal.innerHTML = `<span>Generate Soal Sekarang</span>
+    soalContentOut.innerHTML = `<div style="color: red; padding: 20px; background: #fee2e2; border-radius: 8px;"><b>Error:</b> ${err.message}</div>`;
+  } finally {
+    btnGenerateSoal.disabled = false;
+    btnGenerateSoal.innerHTML = `<span>Generate Soal Sekarang</span>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
-}
+  }
 }
 
 // --- GENERATOR SOAL LOGIC (STATIS - FALLBACK) ---
