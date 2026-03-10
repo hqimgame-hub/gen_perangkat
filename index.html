@@ -271,15 +271,35 @@
                     <b>Gunakan AI (Gemini) Asli</b> <small style="color: #666;">(Menghasilkan soal otentik, butuh API
                       Key)</small>
                   </label>
-                  <div id="apiKeySection" style="display: none;">
-                    <label for="geminiApiKey" style="font-size: 0.85rem; color: #831843;">Gemini API Key</label>
-                    <input type="password" id="geminiApiKey"
-                      placeholder="Paste API Key Anda di sini (Mulai dengan AIza...)"
-                      style="width: 100%; border-color: #fbcfe8; background: #fff;">
-                    <small style="display: block; margin-top: 5px; color: #666;"><a
-                        href="https://aistudio.google.com/app/apikey" target="_blank"
-                        style="color: #be185d; text-decoration: underline;">Dapatkan API Key Gratis di Google AI
-                        Studio</a></small>
+                  <div id="apiKeySection"
+                    style="display: none; margin-top: 15px; border-top: 1px dashed #fbcfe8; padding-top: 15px;">
+                    <div
+                      style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #fbcfe8; margin-bottom: 15px;">
+                      <h5 style="margin-top: 0; color: #831843; margin-bottom: 10px; font-size: 0.95rem;">🔑 Cara
+                        Mendapatkan API Key (Gratis 100%)</h5>
+                      <ol style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #4b5563; line-height: 1.5;">
+                        <li>Buka situs <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                            style="color: #be185d; font-weight: bold;">Google AI Studio</a> dan login dengan akun Google
+                          Anda.</li>
+                        <li>Klik tombol biru <strong>"Create API key"</strong>, lalu pilih <strong>"Create API key in
+                            new project"</strong>.</li>
+                        <li>Tunggu sebentar, lalu <strong>salin</strong> teks tebal panjang yang muncul (Mulai dengan
+                          huruf <code>AIza...</code>).</li>
+                        <li><strong>Tempelkan</strong> (Paste) di kolom bawah ini. (Sistem akan menyimpannya aman di
+                          browser perangkat Anda).</li>
+                      </ol>
+                    </div>
+
+                    <label for="geminiApiKey"
+                      style="font-size: 0.9rem; font-weight: bold; color: #831843; display: flex; justify-content: space-between; align-items: center;">
+                      Masukkan Gemini API Key Anda:
+                      <button type="button" id="btnCheckApiKey"
+                        style="padding: 6px 12px; font-size: 0.75rem; background: #be185d; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0; width: auto; font-weight: bold; box-shadow: 0 2px 4px rgba(190,24,93,0.2);">Simpan
+                        API Key</button>
+                    </label>
+                    <input type="password" id="geminiApiKey" placeholder="Paste API Key di sini (Contoh: AIzaSyBwg...)"
+                      style="width: 100%; border-color: #fbcfe8; background: #fff; margin-top: 8px; padding: 10px; font-family: monospace;">
+                    <small id="apiKeyStatus" style="display: block; margin-top: 5px; font-weight: 500;"></small>
                   </div>
                 </div>
 

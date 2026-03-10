@@ -321,6 +321,29 @@ if (localStorage.getItem('geminiApiKey')) {
   geminiApiKeyInput.value = localStorage.getItem('geminiApiKey');
 }
 
+const btnCheckApiKey = document.getElementById('btnCheckApiKey');
+const apiKeyStatus = document.getElementById('apiKeyStatus');
+
+if (btnCheckApiKey) {
+  btnCheckApiKey.addEventListener('click', () => {
+    const key = geminiApiKeyInput.value.trim();
+    if (!key) {
+      apiKeyStatus.style.color = '#dc2626'; // red
+      apiKeyStatus.innerText = '⚠️ API Key masih kosong!';
+      return;
+    }
+    if (!key.startsWith('AIza')) {
+      apiKeyStatus.style.color = '#dc2626';
+      apiKeyStatus.innerText = '⚠️ Format API Key sepertinya salah. Biasanya diawali dengan "AIza..."';
+      return;
+    }
+    localStorage.setItem('geminiApiKey', key);
+    apiKeyStatus.style.color = '#16a34a'; // green
+    apiKeyStatus.innerText = '✅ API Key berhasil disimpan untuk perangkat ini!';
+    setTimeout(() => { apiKeyStatus.innerText = ''; }, 4000);
+  });
+}
+
 useAICheckbox.addEventListener('change', (e) => {
   apiKeySection.style.display = e.target.checked ? 'block' : 'none';
 });
